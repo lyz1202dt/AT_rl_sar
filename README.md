@@ -178,6 +178,13 @@ If you want to run commands inside the running container, you can use the `exec`
 docker exec --interactive --tty -e DISPLAY=${DISPLAY} robot-lab /bin/bash
 ```
 
+After entering the container, prefer launching training scripts through Isaac Lab's wrapper script so the
+correct Python environment is always used:
+
+```bash
+/workspace/isaaclab/isaaclab.sh -p scripts/reinforcement_learning/rsl_rl/train.py --task=RobotLab-Isaac-Velocity-Flat-Unitree-Go2-v0 --num_envs 2048 --headless
+```
+
 ### Shutting down the container
 
 When you are done or want to stop the running containers, you can bring down the services:

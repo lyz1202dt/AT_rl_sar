@@ -3,10 +3,12 @@
 
 import torch
 
-import isaaclab.utils.math as math_utils
-
 
 def camera_follow(env):
+    # Import Isaac Lab math utilities lazily so this helper can be imported
+    # before SimulationApp is created without triggering Isaac Sim modules too early.
+    import isaaclab.utils.math as math_utils
+
     if not hasattr(camera_follow, "smooth_camera_positions"):
         camera_follow.smooth_camera_positions = []
     robot_pos = env.unwrapped.scene["robot"].data.root_pos_w[0]

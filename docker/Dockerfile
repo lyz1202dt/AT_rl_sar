@@ -34,7 +34,22 @@ USER root
 # Copy the Isaac Lab Extension Template directory (files to exclude are defined in .dockerignore)
 COPY ../ ${DOCKER_ISAACLAB_EXTENSION_TEMPLATE_PATH}
 
-# # Install whatever you need as additional dependencies.
+# Ensure the Isaac Lab core packages are installed into the Python environment used by Isaac Sim.
+# Some custom/base images only provide aliases to Isaac Sim's python and do not pre-install the
+# editable Isaac Lab packages, which causes `ModuleNotFoundError: No module named 'isaaclab'`.
+RUN HTTP_PROXY=${CLASH_PROXY_BUILD_URL} \
+    HTTPS_PROXY=${CLASH_PROXY_BUILD_URL} \
+    ALL_PROXY=${CLASH_PROXY_BUILD_URL} \
+    http_proxy=${CLASH_PROXY_BUILD_URL} \
+    https_proxy=${CLASH_PROXY_BUILD_URL} \
+    all_proxy=${CLASH_PROXY_BUILD_URL} \
+    NO_PROXY=${CLASH_NO_PROXY_ARG} \
+    no_proxy=${CLASH_NO_PROXY_ARG} \
+    bash -i -c "source ${HOME}/.bashrc && \
+    export ISAACLAB_PATH=${ISAACLAB_PATH:-/workspace/isaaclab} && \
+    ${ISAACLAB_PATH}/isaaclab.sh --install"
+
+# Install the robot_lab extension into the same Python environment.
 RUN HTTP_PROXY=${CLASH_PROXY_BUILD_URL} \
     HTTPS_PROXY=${CLASH_PROXY_BUILD_URL} \
     ALL_PROXY=${CLASH_PROXY_BUILD_URL} \
