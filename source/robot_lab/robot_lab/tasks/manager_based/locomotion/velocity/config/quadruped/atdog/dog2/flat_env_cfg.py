@@ -12,6 +12,26 @@ class ATDogDog2FlatEnvCfg(ATDogDog2RoughEnvCfg):
         # post init of parent
         super().__post_init__()
 
+        # Keep flat-task resets very close to the nominal standing state.
+        # Small pose perturbations help robustness without spawning the robot
+        # in obviously unstable configurations.
+        self.events.randomize_reset_base.params["pose_range"] = {
+            "x": (-0.03, 0.03),
+            "y": (-0.03, 0.03),
+            "z": (0.0, 0.02),
+            "roll": (-0.05, 0.05),
+            "pitch": (-0.05, 0.05),
+            "yaw": (-0.1, 0.1),
+        }
+        self.events.randomize_reset_base.params["velocity_range"] = {
+            "x": (0.0, 0.0),
+            "y": (0.0, 0.0),
+            "z": (0.0, 0.0),
+            "roll": (0.0, 0.0),
+            "pitch": (0.0, 0.0),
+            "yaw": (0.0, 0.0),
+        }
+
         # override rewards
         self.rewards.base_height_l2.params["sensor_cfg"] = None
         # change terrain to flat

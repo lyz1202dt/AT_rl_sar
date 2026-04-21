@@ -17,7 +17,10 @@ from robot_lab.assets.atdog import AT_DOG2_CFG  # isort: skip
 @configclass
 class ATDogDog2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
     base_link_name = "base"
-    foot_link_name = ".*_foot"
+    # The URDF foot links are attached through fixed joints and are merged into the
+    # parent calf bodies during import (`merge_fixed_joints=True`), so contact terms
+    # need to target the terminal calf bodies that remain in the articulation.
+    foot_link_name = ".*_calf"
     # fmt: off
     joint_names = [
         "FR_hip_joint", "FR_thigh_joint", "FR_calf_joint",
@@ -143,7 +146,7 @@ class ATDogDog2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.feet_height_body.params["target_height"] = -0.2
         self.rewards.feet_height_body.params["asset_cfg"].body_names = [self.foot_link_name]
         self.rewards.feet_gait.weight = 0.5
-        self.rewards.feet_gait.params["synced_feet_pair_names"] = (("FL_foot", "RR_foot"), ("FR_foot", "RL_foot"))
+        self.rewards.feet_gait.params["synced_feet_pair_names"] = (("FL_calf", "RR_calf"), ("FR_calf", "RL_calf"))
         self.rewards.upward.weight = 1.0
 
         # If the weight of rewards is 0, set rewards to None

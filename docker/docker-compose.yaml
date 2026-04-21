@@ -3,6 +3,16 @@
 
 x-default-robot-lab-environment: &default-robot-lab-environment
   - OMNI_KIT_ALLOW_ROOT=1
+  # Optional proxy settings for runtime networking. These can be injected
+  # from the shell or from container.sh-generated defaults for Clash.
+  - HTTP_PROXY=${HTTP_PROXY-}
+  - HTTPS_PROXY=${HTTPS_PROXY-}
+  - ALL_PROXY=${ALL_PROXY-}
+  - NO_PROXY=${NO_PROXY-}
+  - http_proxy=${http_proxy-}
+  - https_proxy=${https_proxy-}
+  - all_proxy=${all_proxy-}
+  - no_proxy=${no_proxy-}
 
 x-default-robot-lab-deploy: &default-robot-lab-deploy
   resources:
@@ -19,16 +29,27 @@ services:
       context: ../
       dockerfile: docker/Dockerfile
       network: host
+      # Ensure the host Clash proxy is reachable during image builds on Linux.
+      extra_hosts:
+        - "host.docker.internal:host-gateway"
       args:
         - ISAACLAB_BASE_IMAGE_ARG=${ISAACLAB_BASE_IMAGE}
         - DOCKER_ISAACLAB_EXTENSION_TEMPLATE_PATH_ARG=${DOCKER_ISAACLAB_EXTENSION_TEMPLATE_PATH}
-        - CLASH_PROXY_BUILD_HOST_ARG=127.0.0.1
+        - CLASH_PROXY_SCHEME_ARG=${CLASH_PROXY_SCHEME_ARG-http}
+        # Build-time networking does not share the container's localhost.
+        # Use host.docker.internal so the build can reach the host Clash proxy.
+        - CLASH_PROXY_BUILD_HOST_ARG=${CLASH_PROXY_BUILD_HOST_ARG-host.docker.internal}
+        - CLASH_PROXY_RUNTIME_HOST_ARG=${CLASH_PROXY_RUNTIME_HOST_ARG-127.0.0.1}
+        - CLASH_PROXY_PORT_ARG=${CLASH_PROXY_PORT_ARG-7890}
+        - CLASH_NO_PROXY_ARG=${CLASH_NO_PROXY_ARG-localhost,127.0.0.1,::1,host.docker.internal}
     image: robot-lab
     container_name: robot-lab
     volumes:
       - type: bind
         source: ../
         target: ${DOCKER_ISAACLAB_EXTENSION_TEMPLATE_PATH}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     network_mode: host
     environment: *default-robot-lab-environment
     deploy: *default-robot-lab-deploy
