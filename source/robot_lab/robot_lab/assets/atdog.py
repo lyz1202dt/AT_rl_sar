@@ -1,7 +1,7 @@
 
 
 import isaaclab.sim as sim_utils
-from isaaclab.actuators import DCMotorCfg, ImplicitActuatorCfg
+from isaaclab.actuators import DelayedPDActuatorCfg
 from isaaclab.assets.articulation import ArticulationCfg
 
 from robot_lab.assets import ISAACLAB_ASSETS_DATA_DIR
@@ -45,16 +45,16 @@ AT_DOG2_CFG = ArticulationCfg(
     ),
     soft_joint_pos_limit_factor=0.9,
     actuators={
-        "legs": DCMotorCfg(
+        "legs": DelayedPDActuatorCfg(
             joint_names_expr=[".*"],
             effort_limit=23.5,
-            saturation_effort=23.5,
             velocity_limit=30.0,
             stiffness=25.0,
             damping=0.5,
             friction=0.0,
+            min_delay=1,  # physics steps (sim.dt=0.005s): 1 * 5ms = 5ms
+            max_delay=2,  # physics steps (fixed delay): 1 * 5ms = 5ms
         ),
     },
 )
-"""Configuration of Unitree Go2 using DC motor.
-"""
+"""Configuration of atdog dog2 using delayed PD actuators."""
