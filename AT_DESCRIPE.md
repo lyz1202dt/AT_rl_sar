@@ -17,8 +17,8 @@ cd /workspace/isaaclab_extension_template
   --num_envs=8000 \
   --max_iterations=1000 \
   --resume \
-  --load_run=2026-04-26_09-26-07 \
-  --checkpoint=model_3196.pt \
+  --load_run=2026-04-26_10-41-00 \
+  --checkpoint=model_5195.pt \
   --headless 
 
 
