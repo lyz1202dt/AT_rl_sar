@@ -12,7 +12,14 @@ docker/container.sh enter
 
 ```bash
 cd /workspace/isaaclab_extension_template
-/workspace/isaaclab/isaaclab.sh -p scripts/reinforcement_learning/rsl_rl/train.py --task=RobotLab-Isaac-Velocity-Flat-Unitree-Go2-v0 --num_envs 2048 --headless  --max_iterations 3000  --checkpoint=[路径]
+/workspace/isaaclab/isaaclab.sh -p /workspace/isaaclab_extension_template/scripts/reinforcement_learning/rsl_rl/train.py \
+  --task=RobotLab-Isaac-Velocity-Flat-ATDog-Dog2-v0 \
+  --num_envs=2800 \
+  --max_iterations=1000 \
+  --resume \
+  --load_run=2026-04-25_17-08-19 \
+  --checkpoint=model_5999.pt
+
 
 ```
 
