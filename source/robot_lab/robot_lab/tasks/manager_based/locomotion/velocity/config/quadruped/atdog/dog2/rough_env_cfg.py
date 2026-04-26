@@ -124,9 +124,9 @@ class ATDogDog2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         # 机身水平姿态惩罚关闭
         self.rewards.flat_orientation_l2.weight = 0
         # 机身高度惩罚关闭（但保留目标高度参数便于后续开启）
-        self.rewards.base_height_l2.weight = 0
+        self.rewards.base_height_l2.weight = -0.0  #（改了0）
         # 机身目标高度（单位: 米）
-        self.rewards.base_height_l2.params["target_height"] = 0.33
+        self.rewards.base_height_l2.params["target_height"] = 0.27 #（改了0.33）
         # 指定高度项作用 body 为 base
         self.rewards.base_height_l2.params["asset_cfg"].body_names = [self.base_link_name]
         # 机身线加速度惩罚关闭
@@ -164,7 +164,7 @@ class ATDogDog2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
 
         # Contact sensor 接触相关
         # 非足端 body 与地面/环境发生接触时惩罚（如机身擦地）
-        self.rewards.undesired_contacts.weight = -1.0
+        self.rewards.undesired_contacts.weight = -20.0
         self.rewards.undesired_contacts.params["sensor_cfg"].body_names = [f"^(?!.*{self.foot_link_name}).*"]
         # 足端接触力惩罚，抑制过大冲击
         self.rewards.contact_forces.weight = -1.5e-4
@@ -178,7 +178,7 @@ class ATDogDog2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
 
         # Others 其他步态/稳定性项
         # 摆腿腾空时间奖励（避免拖脚）
-        self.rewards.feet_air_time.weight = 0.8
+        self.rewards.feet_air_time.weight = 5.0   #（改了20.0）
         # 腾空时间门槛，小于该值时奖励效果受限
         self.rewards.feet_air_time.params["threshold"] = 0.5
         self.rewards.feet_air_time.params["sensor_cfg"].body_names = [self.foot_link_name]
@@ -199,12 +199,12 @@ class ATDogDog2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.feet_slide.params["sensor_cfg"].body_names = [self.foot_link_name]
         self.rewards.feet_slide.params["asset_cfg"].body_names = [self.foot_link_name]
         # 足端绝对高度奖励关闭（可用于控制抬腿高度）
-        self.rewards.feet_height.weight = 0
-        self.rewards.feet_height.params["target_height"] = 0.05
+        self.rewards.feet_height.weight = 2.0  #（改了0）
+        self.rewards.feet_height.params["target_height"] = 0.08 #（改了0.05）
         self.rewards.feet_height.params["asset_cfg"].body_names = [self.foot_link_name]
         # 足端相对机身高度惩罚（目标为 -0.2，约束腿部收放）
-        self.rewards.feet_height_body.weight = -9.0
-        self.rewards.feet_height_body.params["target_height"] = -0.2
+        self.rewards.feet_height_body.weight = -5.0#（改了30）
+        self.rewards.feet_height_body.params["target_height"] = -0.2 #（改了-0.25）
         self.rewards.feet_height_body.params["asset_cfg"].body_names = [self.foot_link_name]
         # 对角腿步态同步奖励（FL-RR, FR-RL）
         self.rewards.feet_gait.weight = 0.5
