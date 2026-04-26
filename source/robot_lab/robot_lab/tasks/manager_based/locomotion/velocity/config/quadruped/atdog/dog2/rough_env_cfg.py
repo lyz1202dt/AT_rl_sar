@@ -139,7 +139,7 @@ class ATDogDog2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         # 关节速度惩罚关闭
         self.rewards.joint_vel_l2.weight = 0.0
         # 关节加速度惩罚，减少动作抖动
-        self.rewards.joint_acc_l2.weight = -1.0e-6
+        self.rewards.joint_acc_l2.weight = -5.0e-6
         # self.rewards.create_joint_deviation_l1_rewterm("joint_deviation_hip_l1", -0.2, [".*_hip_joint"])
         # 关节接近位置极限时惩罚
         self.rewards.joint_pos_limits.weight = -5.0
@@ -148,7 +148,7 @@ class ATDogDog2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         # 功率惩罚（近似能耗约束）
         self.rewards.joint_power.weight = -2e-5
         # 有速度命令时站立不动会受惩罚
-        self.rewards.stand_still.weight = -20.0
+        self.rewards.stand_still.weight = -10.0
         # 关节姿态偏置惩罚
         self.rewards.joint_pos_penalty.weight = -1.0
         # 对角腿关节镜像一致性惩罚（鼓励对称步态）
@@ -160,11 +160,11 @@ class ATDogDog2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
 
         # Action penalties 动作平滑性
         # 惩罚相邻时刻动作变化率，减少高频抖动
-        self.rewards.action_rate_l2.weight = -0.15
+        self.rewards.action_rate_l2.weight = -0.20
 
         # Contact sensor 接触相关
         # 非足端 body 与地面/环境发生接触时惩罚（如机身擦地）
-        self.rewards.undesired_contacts.weight = -20.0
+        self.rewards.undesired_contacts.weight = -50.0
         self.rewards.undesired_contacts.params["sensor_cfg"].body_names = [f"^(?!.*{self.foot_link_name}).*"]
         # 足端接触力惩罚，抑制过大冲击
         self.rewards.contact_forces.weight = -1.5e-4
@@ -200,7 +200,7 @@ class ATDogDog2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.feet_slide.params["asset_cfg"].body_names = [self.foot_link_name]
         # 足端绝对高度奖励关闭（可用于控制抬腿高度）
         self.rewards.feet_height.weight = 5.0  #（改了0）
-        self.rewards.feet_height.params["target_height"] = 0.1 #（改了0.05）
+        self.rewards.feet_height.params["target_height"] = 0.08 #（改了0.05）
         self.rewards.feet_height.params["asset_cfg"].body_names = [self.foot_link_name]
         # 足端相对机身高度惩罚（目标为 -0.2，约束腿部收放）
         self.rewards.feet_height_body.weight = -15.0#（改了30）
