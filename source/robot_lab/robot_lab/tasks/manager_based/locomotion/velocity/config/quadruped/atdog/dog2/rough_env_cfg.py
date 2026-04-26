@@ -160,7 +160,7 @@ class ATDogDog2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
 
         # Action penalties 动作平滑性
         # 惩罚相邻时刻动作变化率，减少高频抖动
-        self.rewards.action_rate_l2.weight = -0.06
+        self.rewards.action_rate_l2.weight = -0.1
 
         # Contact sensor 接触相关
         # 非足端 body 与地面/环境发生接触时惩罚（如机身擦地）
@@ -178,7 +178,7 @@ class ATDogDog2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
 
         # Others 其他步态/稳定性项
         # 摆腿腾空时间奖励（避免拖脚）
-        self.rewards.feet_air_time.weight = 0.1
+        self.rewards.feet_air_time.weight = 0.3
         # 腾空时间门槛，小于该值时奖励效果受限
         self.rewards.feet_air_time.params["threshold"] = 0.5
         self.rewards.feet_air_time.params["sensor_cfg"].body_names = [self.foot_link_name]
