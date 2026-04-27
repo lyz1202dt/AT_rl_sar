@@ -41,9 +41,9 @@ class ATDogDog2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         # ------------------------------Scene 场景与传感器------------------------------
         # 指定机器人资产，并放置到每个并行环境的 Robot prim 下
         self.scene.robot = AT_DOG2_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
-        # 将高度扫描器挂到机身 base 上，保证地形感知参考系一致
-        self.scene.height_scanner.prim_path = "{ENV_REGEX_NS}/Robot/" + self.base_link_name
-        self.scene.height_scanner_base.prim_path = "{ENV_REGEX_NS}/Robot/" + self.base_link_name
+        # 盲走设置: 关闭地形高度扫描器，避免任何显式地形感知输入
+        self.scene.height_scanner = None
+        self.scene.height_scanner_base = None
 
         # ------------------------------Observations 观测------------------------------
         # 各观测分量缩放系数:
@@ -57,6 +57,8 @@ class ATDogDog2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         # 说明: 这里常用于做“部分可观测”训练，迫使策略更依赖本体状态
         self.observations.policy.base_lin_vel = None
         self.observations.policy.height_scan = None
+        # 同时关闭 critic 侧 height_scan，避免训练时通过特权观测引入地形感知
+        self.observations.critic.height_scan = None
         # 明确 joint_pos/joint_vel 仅采集 joint_names 中定义的关节
         self.observations.policy.joint_pos.params["asset_cfg"].joint_names = self.joint_names
         self.observations.policy.joint_vel.params["asset_cfg"].joint_names = self.joint_names
@@ -77,23 +79,21 @@ class ATDogDog2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         # - pose_range: 初始位置/姿态扰动范围
         # - velocity_range: 初始线速度/角速度扰动范围
         # 目的: 提升鲁棒性，减少对单一起始状态过拟合
-        self.events.randomize_reset_base.params = {
-            "pose_range": {
-                "x": (-0.5, 0.5),
-                "y": (-0.5, 0.5),
-                "z": (0.0, 0.2),
-                "roll": (-3.14, 3.14),
-                "pitch": (-3.14, 3.14),
-                "yaw": (-3.14, 3.14),
-            },
-            "velocity_range": {
-                "x": (-0.5, 0.5),
-                "y": (-0.5, 0.5),
-                "z": (-0.5, 0.5),
-                "roll": (-0.5, 0.5),
-                "pitch": (-0.5, 0.5),
-                "yaw": (-0.5, 0.5),
-            },
+        self.events.randomize_reset_base.params["pose_range"] = {
+            "x": (-0.03, 0.03),
+            "y": (-0.03, 0.03),
+            "z": (0.0, 0.02),
+            "roll": (-0.05, 0.05),
+            "pitch": (-0.05, 0.05),
+            "yaw": (-0.1, 0.1),
+        }
+        self.events.randomize_reset_base.params["velocity_range"] = {
+            "x": (0.0, 0.0),
+            "y": (0.0, 0.0),
+            "z": (0.0, 0.0),
+            "roll": (0.0, 0.0),
+            "pitch": (0.0, 0.0),
+            "yaw": (0.0, 0.0),
         }
         # 仅随机化 base 的质量
         self.events.randomize_rigid_body_mass_base.params["asset_cfg"].body_names = [self.base_link_name]
@@ -164,7 +164,7 @@ class ATDogDog2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
 
         # Contact sensor 接触相关
         # 非足端 body 与地面/环境发生接触时惩罚（如机身擦地）
-        self.rewards.undesired_contacts.weight = -50.0
+        self.rewards.undesired_contacts.weight = -8.0
         self.rewards.undesired_contacts.params["sensor_cfg"].body_names = [f"^(?!.*{self.foot_link_name}).*"]
         # 足端接触力惩罚，抑制过大冲击
         self.rewards.contact_forces.weight = -1.5e-4
@@ -172,9 +172,9 @@ class ATDogDog2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
 
         # Velocity-tracking rewards 速度跟踪主任务
         # 跟踪平面线速度命令（核心奖励之一）
-        self.rewards.track_lin_vel_xy_exp.weight = 5.0
+        self.rewards.track_lin_vel_xy_exp.weight = 7.0
         # 跟踪偏航角速度命令
-        self.rewards.track_ang_vel_z_exp.weight = 2.0
+        self.rewards.track_ang_vel_z_exp.weight = 4.0
 
         # Others 其他步态/稳定性项
         # 摆腿腾空时间奖励（避免拖脚）
@@ -192,7 +192,7 @@ class ATDogDog2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.feet_contact_without_cmd.weight = 0.1
         self.rewards.feet_contact_without_cmd.params["sensor_cfg"].body_names = [self.foot_link_name]
         # 绊脚惩罚关闭
-        self.rewards.feet_stumble.weight = 0
+        self.rewards.feet_stumble.weight = -20.0
         self.rewards.feet_stumble.params["sensor_cfg"].body_names = [self.foot_link_name]
         # 足端滑动惩罚（减少打滑）
         self.rewards.feet_slide.weight = -0.1
