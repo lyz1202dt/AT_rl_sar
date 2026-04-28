@@ -1,4 +1,3 @@
-# syntax=docker/dockerfile:1.4
 
 ARG ISAACLAB_BASE_IMAGE_ARG
 ARG CLASH_PROXY_SCHEME_ARG=http
