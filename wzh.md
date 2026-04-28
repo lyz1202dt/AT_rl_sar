@@ -432,3 +432,15 @@ rough_env_cfg.py (设置奖励权重)
 
 #  参数检测脚本
    python3 /home/zhangjiayi/RL/AT_rl_sar/scripts/tools/system_monitor.py
+
+#  监控训练
+   python3 scripts/tools/monitor_training_live.py --logdir logs/rsl_rl/atdog_dog2_flat/2026-04-28_12-53-05
+
+  
+# 查看文件是否存在
+ls -la /tmp/training_plot.png
+
+# 用图片查看器打开
+xdg-open /tmp/training_plot.png  # Linux
+eog /tmp/training_plot.png       # GNOME
+feh /tmp/training_plot.png       # 轻量级查看器

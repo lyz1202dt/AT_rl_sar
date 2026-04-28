@@ -98,6 +98,7 @@ class ATDogDog2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         # - pose_range: 初始位置/姿态扰动范围
         # - velocity_range: 初始线速度/角速度扰动范围
         # 目的: 提升鲁棒性，减少对单一起始状态过拟合
+<<<<<<< HEAD
         self.events.randomize_reset_base.params["pose_range"] = {
             "x": (-0.03, 0.03),
             "y": (-0.03, 0.03),
@@ -113,6 +114,25 @@ class ATDogDog2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
             "roll": (0.0, 0.0),
             "pitch": (0.0, 0.0),
             "yaw": (0.0, 0.0),
+=======
+        self.events.randomize_reset_base.params = {
+            "pose_range": {
+                "x": (-0.05, 0.05),
+                "y": (-0.05, 0.05),
+                "z": (0.0, 0.2),
+                "roll": (-0.05, 0.05),
+                "pitch": (-0.05, 0.05),
+                "yaw": (-0.05, 0.05),   
+            },
+            "velocity_range": {
+                "x": (-0.05, 0.05),
+                "y": (-0.05, 0.05),
+                "z": (-0.05, 0.05),
+                "roll": (-0.05, 0.05),
+                "pitch": (-0.05, 0.05),
+                "yaw": (-0.05, 0.05),   
+            },
+>>>>>>> b6dc057 (1)
         }
         # 仅随机化 base 的质量
         self.events.randomize_rigid_body_mass_base.params["asset_cfg"].body_names = [self.base_link_name]
