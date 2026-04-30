@@ -5,7 +5,7 @@
 <robot
   name="dog2">
   <link
-    name="body_link">
+    name="base">
     <inertial>
       <origin
         xyz="-0.012165 0.00021263 0.044979"
@@ -45,7 +45,7 @@
     </collision>
   </link>
   <link
-    name="lf_link1">
+    name="FL_hip">
     <inertial>
       <origin
         xyz="0.00904833267309341 -0.000445723687959344 0.0509865906799308"
@@ -91,9 +91,9 @@
       xyz="0.18433 0.058364 0.045534"
       rpy="1.5708 0 1.5708" />
     <parent
-      link="body_link" />
+      link="base" />
     <child
-      link="lf_link1" />
+      link="FL_hip" />
     <axis
       xyz="0 0 1" />
     <limit
@@ -103,7 +103,7 @@
       velocity="30" />
   </joint>
   <link
-    name="lf_link2">
+    name="FL_thigh">
     <inertial>
       <origin
         xyz="0.0472514575966696 -0.000903641669833866 0.0548578566923584"
@@ -149,9 +149,9 @@
       xyz="0.031298 0.00022929 0.06"
       rpy="-1.5708 0 -1.5639" />
     <parent
-      link="lf_link1" />
+      link="FL_hip" />
     <child
-      link="lf_link2" />
+      link="FL_thigh" />
     <axis
       xyz="0 0 1" />
     <limit
@@ -161,7 +161,7 @@
       velocity="30" />
   </joint>
   <link
-    name="lf_link3">
+    name="FL_calf">
     <inertial>
       <origin
         xyz="0.0837721792657498 -4.60194909956968E-09 0.000508787163328944"
@@ -207,9 +207,9 @@
       xyz="0.20707 -0.0041231 0.0716"
       rpy="0 0 -1.570796" />
     <parent
-      link="lf_link2" />
+      link="FL_thigh" />
     <child
-      link="lf_link3" />
+      link="FL_calf" />
     <axis
       xyz="0 0 1" />
     <limit
@@ -219,7 +219,7 @@
       velocity="30" />
   </joint>
   <link
-    name="lf_link4">
+    name="FL_foot">
     <inertial>
       <origin
         xyz="-3.50891271594378E-09 0.000378378703097815 -5.25715843080476E-09"
@@ -265,14 +265,14 @@
       xyz="0.22 0 0.001"
       rpy="0 0 -1.5708" />
     <parent
-      link="lf_link3" />
+      link="FL_calf" />
     <child
-      link="lf_link4" />
+      link="FL_foot" />
     <axis
       xyz="0 0 0" />
   </joint>
   <link
-    name="rf_link1">
+    name="FR_hip">
     <inertial>
       <origin
         xyz="-0.00903401438885915 0.000387933700798641 0.051121762146726"
@@ -318,9 +318,9 @@
       xyz="0.18643 -0.06136 0.03776"
       rpy="1.5708 0 1.5708" />
     <parent
-      link="body_link" />
+      link="base" />
     <child
-      link="rf_link1" />
+      link="FR_hip" />
     <axis
       xyz="0 0 1" />
     <limit
@@ -330,7 +330,7 @@
       velocity="30" />
   </joint>
   <link
-    name="rf_link2">
+    name="FR_thigh">
     <inertial>
       <origin
         xyz="0.0499236644984038 -0.00095533735015299 0.0541375735915618"
@@ -376,9 +376,9 @@
       xyz="-0.0313 -0.00018614 0.06"
       rpy="1.5708 0 -1.5644" />
     <parent
-      link="rf_link1" />
+      link="FR_hip" />
     <child
-      link="rf_link2" />
+      link="FR_thigh" />
     <axis
       xyz="0 0 1" />
     <limit
@@ -388,7 +388,7 @@
       velocity="30" />
   </joint>
   <link
-    name="rf_link3">
+    name="FR_calf">
     <inertial>
       <origin
         xyz="0.0837721782388981 -6.26428867112061E-09 -0.000491211466285557"
@@ -434,9 +434,9 @@
       xyz="0.20707 -0.0041231 0.0726"
       rpy="0 0 1.5658" />
     <parent
-      link="rf_link2" />
+      link="FR_thigh" />
     <child
-      link="rf_link3" />
+      link="FR_calf" />
     <axis
       xyz="0 0 1" />
     <limit
@@ -446,7 +446,7 @@
       velocity="30" />
   </joint>
   <link
-    name="rf_link4">
+    name="FR_foot">
     <inertial>
       <origin
         xyz="-1.43280654008038E-09 -0.000378378942221369 3.4596987497082E-09"
@@ -492,14 +492,14 @@
       xyz="0.22 0 0"
       rpy="3.1416 0 -1.5708" />
     <parent
-      link="rf_link3" />
+      link="FR_calf" />
     <child
-      link="rf_link4" />
+      link="FR_foot" />
     <axis
       xyz="0 0 0" />
   </joint>
   <link
-    name="lb_link1">
+    name="RL_hip">
     <inertial>
       <origin
         xyz="0.00904656350288735 -0.000433656161891323 0.0511411943445323"
@@ -545,9 +545,9 @@
       xyz="-0.20677 0.058639 0.03776"
       rpy="-1.5708 0 1.5708" />
     <parent
-      link="body_link" />
+      link="base" />
     <child
-      link="lb_link1" />
+      link="RL_hip" />
     <axis
       xyz="0 0 1" />
     <limit
@@ -557,7 +557,7 @@
       velocity="30" />
   </joint>
   <link
-    name="lb_link2">
+    name="RL_thigh">
     <inertial>
       <origin
         xyz="0.0472600825732321 3.7200257848452E-05 0.0568578568553258"
@@ -603,9 +603,9 @@
       xyz="0.029301 -1.3226E-05 0.06"
       rpy="1.5708 0 1.5708" />
     <parent
-      link="lb_link1" />
+      link="RL_hip" />
     <child
-      link="lb_link2" />
+      link="RL_thigh" />
     <axis
       xyz="0 0 1" />
     <limit
@@ -615,7 +615,7 @@
       velocity="30" />
   </joint>
   <link
-    name="lb_link3">
+    name="RL_calf">
     <inertial>
       <origin
         xyz="0.0837721783440552 -5.40152703121244E-09 -0.000491211466604163"
@@ -661,9 +661,9 @@
       xyz="0.20711 0 0.0746"
       rpy="0 0 -1.570796" />
     <parent
-      link="lb_link2" />
+      link="RL_thigh" />
     <child
-      link="lb_link3" />
+      link="RL_calf" />
     <axis
       xyz="0 0 1" />
     <limit
@@ -673,7 +673,7 @@
       velocity="30" />
   </joint>
   <link
-    name="lb_link4">
+    name="RL_foot">
     <inertial>
       <origin
         xyz="5.29404853288895E-11 -0.000378375798436359 2.12857509396258E-13"
@@ -719,14 +719,14 @@
       xyz="0.22 0 0"
       rpy="3.1416 0 -1.5708" />
     <parent
-      link="lb_link3" />
+      link="RL_calf" />
     <child
-      link="lb_link4" />
+      link="RL_foot" />
     <axis
       xyz="0 0 0" />
   </joint>
   <link
-    name="rb_link1">
+    name="RR_hip">
     <inertial>
       <origin
         xyz="-0.00904656350288724 0.000534630482668015 0.0509865912088688"
@@ -772,9 +772,9 @@
       xyz="-0.20677 -0.06136 0.037786"
       rpy="-1.5708 0 1.5708" />
     <parent
-      link="body_link" />
+      link="base" />
     <child
-      link="rb_link1" />
+      link="RR_hip" />
     <axis
       xyz="0 0 1" />
     <limit
@@ -784,7 +784,7 @@
       velocity="30" />
   </joint>
   <link
-    name="rb_link2">
+    name="RR_thigh">
     <inertial>
       <origin
         xyz="0.0499327884362379 3.87095578488206E-05 0.0561375736632924"
@@ -830,9 +830,9 @@
       xyz="-0.029301 1.3226E-05 0.06"
       rpy="-1.5708 0 1.5708" />
     <parent
-      link="rb_link1" />
+      link="RR_hip" />
     <child
-      link="rb_link2" />
+      link="RR_thigh" />
     <axis
       xyz="0 0 1" />
     <limit
@@ -842,7 +842,7 @@
       velocity="30" />
   </joint>
   <link
-    name="rb_link3">
+    name="RR_calf">
     <inertial>
       <origin
         xyz="0.0855640092589884 -5.44242703681697E-09 -0.000917147224226089"
@@ -888,9 +888,9 @@
       xyz="0.20711 0 0.0746"
       rpy="0 0 1.570796" />
     <parent
-      link="rb_link2" />
+      link="RR_thigh" />
     <child
-      link="rb_link3" />
+      link="RR_calf" />
     <axis
       xyz="0 0 1" />
     <limit
@@ -900,7 +900,7 @@
       velocity="30" />
   </joint>
   <link
-    name="rb_link4">
+    name="RR_foot">
     <inertial>
       <origin
         xyz="-2.20403631456811E-09 -0.000378377603562075 7.82278797295533E-10"
@@ -946,9 +946,9 @@
       xyz="0.22 0 0"
       rpy="3.1416 0 -1.5708" />
     <parent
-      link="rb_link3" />
+      link="RR_calf" />
     <child
-      link="rb_link4" />
+      link="RR_foot" />
     <axis
       xyz="0 0 0" />
   </joint>
