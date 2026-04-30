@@ -147,7 +147,7 @@
     type="revolute">
     <origin
       xyz="0.031298 0.00022929 0.06"
-      rpy="-1.5708 0 -1.5639" />
+      rpy="-1.5708 0 -1.5708" />
     <parent
       link="FL_hip" />
     <child
@@ -374,7 +374,7 @@
     type="revolute">
     <origin
       xyz="-0.0313 -0.00018614 0.06"
-      rpy="1.5708 0 -1.5644" />
+      rpy="1.5708 0 -1.5708" />
     <parent
       link="FR_hip" />
     <child
@@ -432,7 +432,7 @@
     type="revolute">
     <origin
       xyz="0.20707 -0.0041231 0.0726"
-      rpy="0 0 1.5658" />
+      rpy="0 0 1.5708" />
     <parent
       link="FR_thigh" />
     <child

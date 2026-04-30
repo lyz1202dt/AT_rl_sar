@@ -5,7 +5,7 @@
 <robot
   name="dog">
   <link
-    name="base">
+    name="base_link">
     <inertial>
       <origin
         xyz=" -0.006546 -0.000216 0.059387"
@@ -91,7 +91,7 @@
       xyz="0.1916 0.069987 0.061999"
       rpy="0 1.5708 0" />
     <parent
-      link="base" />
+      link="base_link" />
     <child
       link="FL_hip" />
     <axis
@@ -205,7 +205,7 @@
     type="revolute">
     <origin
       xyz="0.23001 0 0.0925"
-      rpy="0 0 -1.6653" />
+      rpy="0 0 -1.5708" />
     <parent
       link="FL_thigh" />
     <child
@@ -319,7 +319,7 @@
       xyz="0.1916 -0.070013 0.061999"
       rpy="0 1.5708 0" />
     <parent
-      link="base" />
+      link="base_link" />
     <child
       link="FR_hip" />
     <axis
@@ -433,7 +433,7 @@
     type="revolute">
     <origin
       xyz="0.22999 0 -0.0925"
-      rpy="3.1416 0 -1.6804" />
+      rpy="3.1416 0 -1.5708" />
     <parent
       link="FR_thigh" />
     <child
@@ -547,7 +547,7 @@
       xyz="-0.1916 0.070013 0.061999"
       rpy="3.1416 1.5708 0" />
     <parent
-      link="base" />
+      link="base_link" />
     <child
       link="RL_hip" />
     <axis
@@ -661,7 +661,7 @@
     type="revolute">
     <origin
       xyz="0.23001 0 0.0925"
-      rpy="0 0 -1.629" />
+      rpy="0 0 -1.5708" />
     <parent
       link="RL_thigh" />
     <child
@@ -775,7 +775,7 @@
       xyz="-0.1916 -0.069987 0.061999"
       rpy="3.1416 1.5708 0" />
     <parent
-      link="base" />
+      link="base_link" />
     <child
       link="RR_hip" />
     <axis
@@ -889,7 +889,7 @@
     type="revolute">
     <origin
       xyz="0.22999 0 0.0925"
-      rpy="0 0 1.546" />
+      rpy="0 0 1.5708" />
     <parent
       link="RR_thigh" />
     <child
