@@ -444,3 +444,10 @@ ls -la /tmp/training_plot.png
 xdg-open /tmp/training_plot.png  # Linux
 eog /tmp/training_plot.png       # GNOME
 feh /tmp/training_plot.png       # 轻量级查看器
+
+
+#40-45
+        # disable base_lin_vel observation to match rough terrain config
+        # this ensures observation dimension consistency between flat and rough environments
+        self.observations.policy.base_lin_vel = None
+        self.observations.critic.base_lin_vel = None

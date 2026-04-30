@@ -12,7 +12,6 @@ class ATDogDogFlatEnvCfg(ATDogDogRoughEnvCfg):
         # post init of parent
         super().__post_init__()
 
-
         self.events.randomize_reset_base.params["pose_range"] = {
             "x": (-0.03, 0.03),
             "y": (-0.03, 0.03),
@@ -39,6 +38,10 @@ class ATDogDogFlatEnvCfg(ATDogDogRoughEnvCfg):
         self.scene.height_scanner = None
         self.observations.policy.height_scan = None
         self.observations.critic.height_scan = None
+        # disable base_lin_vel observation to match rough terrain config
+        # this ensures observation dimension consistency between flat and rough environments
+        self.observations.policy.base_lin_vel = None
+        self.observations.critic.base_lin_vel = None
         # no terrain curriculum
         self.curriculum.terrain_levels = None
 
