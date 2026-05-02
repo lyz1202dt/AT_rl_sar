@@ -17,6 +17,41 @@ from robot_lab.tasks.manager_based.locomotion.velocity.velocity_env_cfg import L
 # use local assets
 from robot_lab.assets.atdog import AT_DOG2_CFG  # isort: skip
 
+# 自定义台阶地形（倒金字塔上台阶）:
+# - 台阶高 10cm
+# - 台阶水平长度 30cm
+# 说明:
+# 使用 MeshInvertedPyramidStairsTerrainCfg（与 Isaac Lab 默认 rough 配置一致）
+# 生成倒金字塔台阶，机器人可从低处向高处持续上台阶。
+DOG2_STAIRS_TERRAIN_CFG = terrain_gen.TerrainGeneratorCfg(
+    size=(8.0, 8.0),
+    border_width=20.0,
+    num_rows=10,
+    num_cols=20,
+    horizontal_scale=0.1,
+    vertical_scale=0.005,
+    slope_threshold=0.75,
+    use_cache=False,
+    sub_terrains={
+        "stairs": terrain_gen.MeshInvertedPyramidStairsTerrainCfg(
+            proportion=1.0,
+            step_height_range=(0.07, 0.13),#(最初0.07-0.13)
+            step_width=0.30,
+            platform_width=3.0,
+            border_width=1.0,
+            holes=False,
+        ),
+        "stairs2": terrain_gen.MeshPyramidStairsTerrainCfg(
+            proportion=1.0,
+            step_height_range=(0.07, 0.13),
+            step_width=0.30,
+            platform_width=3.0,
+            border_width=1.0,
+            holes=False,
+        ),
+    },
+)
+
 
 @configclass
 class ATDogDog2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
@@ -43,6 +78,9 @@ class ATDogDog2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         super().__post_init__()
 
         # ------------------------------Scene 场景与传感器------------------------------
+        # 覆写默认 rough terrain：仅使用固定参数台阶地形
+        self.scene.terrain.terrain_type = "generator"
+        self.scene.terrain.terrain_generator = DOG2_STAIRS_TERRAIN_CFG
         # 指定机器人资产，并放置到每个并行环境的 Robot prim 下
         self.scene.robot = AT_DOG2_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
         # 将高度扫描器挂到机身 base 上，保证地形感知参考系一致
@@ -61,6 +99,9 @@ class ATDogDog2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         # 说明: 这里常用于做“部分可观测”训练，迫使策略更依赖本体状态
         self.observations.policy.base_lin_vel = None
         self.observations.policy.height_scan = None
+        # 为了与历史 checkpoint 的网络输入维度保持一致，同时关闭 critic 侧高度扫描观测
+        # 否则 resume 时会出现 critic 第一层权重 shape mismatch（例如 48 vs 235）
+        self.observations.critic.height_scan = None
         # 明确 joint_pos/joint_vel 仅采集 joint_names 中定义的关节
         self.observations.policy.joint_pos.params["asset_cfg"].joint_names = self.joint_names
         self.observations.policy.joint_vel.params["asset_cfg"].joint_names = self.joint_names
@@ -101,17 +142,17 @@ class ATDogDog2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
                 "x": (-0.5, 0.5),
                 "y": (-0.5, 0.5),
                 "z": (0.0, 0.2),
-                "roll": (-3.14, 3.14),
-                "pitch": (-3.14, 3.14),
-                "yaw": (-3.14, 3.14),
-            },
-            "velocity_range": {
-                "x": (-0.5, 0.5),
-                "y": (-0.5, 0.5),
-                "z": (-0.5, 0.5),
                 "roll": (-0.5, 0.5),
                 "pitch": (-0.5, 0.5),
                 "yaw": (-0.5, 0.5),
+            },
+            "velocity_range": {
+                "x": (-0.2, 0.2),
+                "y": (-0.2, 0.2),
+                "z": (-0.2, 0.2),
+                "roll": (-0.1, 0.1),
+                "pitch": (-0.1, 0.1),
+                "yaw": (-0.1, 0.1),
             },
         }
         # 仅随机化 base 的质量
@@ -131,104 +172,118 @@ class ATDogDog2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         # - 负权重: 惩罚该行为（penalty）-> 底层返回误差/能耗，策略避免扣分
         # - 权重为0: 本项不参与训练（后面可统一 disable）
 
-        # General 通用项
-        # 终止惩罚在该配置中关闭（=0）
+        # General
+        # 终止奖励（通常在 episode 提前结束时给固定惩罚/奖励）。
+        # 这里设为 0，表示不通过该项直接影响学习，终止影响主要体现在回合截断本身。
         self.rewards.is_terminated.weight = 0
 
-        # Root penalties 机身状态惩罚
-        # 惩罚竖直方向线速度，减少机身上下蹿动
+        # Root penalties
+        # 惩罚机身 z 方向线速度，抑制“跳跃/颠簸”。
+        # 绝对值增大 -> 更追求贴地平稳；过大可能抑制跨越障碍能力。
         self.rewards.lin_vel_z_l2.weight = -3.0
-        # 惩罚机身滚转/俯仰角速度，抑制侧翻和点头
+        # 惩罚机身 x/y 角速度（roll/pitch 旋转速度），降低侧翻和点头抖动。
         self.rewards.ang_vel_xy_l2.weight = -0.05
-        # 机身水平姿态惩罚关闭
+        # 惩罚机身姿态偏离水平（roll/pitch 倾斜角误差）。
+        # 当前关闭，更多依赖速度追踪与接触项“间接”学稳定姿态。
         self.rewards.flat_orientation_l2.weight = 0
-        # 机身高度惩罚关闭（但保留目标高度参数便于后续开启）
-        self.rewards.base_height_l2.weight = -0.0  #（改了0）
-        # 机身目标高度（单位: 米）
+        # 机身高度跟踪惩罚: 鼓励 base 高度接近 target_height。
+        # 粗糙地形里若设太大，策略可能过于僵硬，不利于跨坎/踏石。
+        self.rewards.base_height_l2.weight = 0
+        # 目标机身高度（单位 m）。
         self.rewards.base_height_l2.params["target_height"] = 0.27
-        # 指定高度项作用 body 为 base
+        # 指定用 base 刚体计算该项（避免多 body 统计带来歧义）。
         self.rewards.base_height_l2.params["asset_cfg"].body_names = [self.base_link_name]
-        # 机身线加速度惩罚关闭
+        # 惩罚机身线加速度（平滑机身受力/运动），当前关闭。
+        # 该项常用于减小真实机器冲击与传感器饱和风险。
         self.rewards.body_lin_acc_l2.weight = 0
         self.rewards.body_lin_acc_l2.params["asset_cfg"].body_names = [self.base_link_name]
 
-        # Joint penalties 关节相关惩罚
-        # [惩罚] 底层返回关节力矩平方。负权重用于节能和保护电机，防止输出过大扭矩。
+        # Joint penalties
+        # 力矩 L2 惩罚，控制能耗并抑制“暴力驱动”。
+        # 通常与 joint_power 配合，一个约束幅值，一个约束功率。
         self.rewards.joint_torques_l2.weight = -2.5e-5
-        # 关节速度惩罚关闭
-        self.rewards.joint_vel_l2.weight = 0.0
-        # [惩罚] 底层返回关节加速度平方。负权重让动作更平滑，减少机械抖动。
+        # 关节速度 L2 惩罚，抑制关节甩动，当前关闭。
+        self.rewards.joint_vel_l2.weight = 0
+        # 关节加速度 L2 惩罚，鼓励动作更平滑、降低冲击。
         self.rewards.joint_acc_l2.weight = -5.0e-6
         # self.rewards.create_joint_deviation_l1_rewterm("joint_deviation_hip_l1", -0.2, [".*_hip_joint"])
-        # [惩罚] 底层返回靠近关节限位的程度。负权重防止关节打到物理极限。
+        # 关节限位惩罚: 接近/触发关节上下限时强惩罚，防止打限位。
         self.rewards.joint_pos_limits.weight = -5.0
-        # 关节速度上限惩罚关闭
+        # 关节速度上限惩罚，当前关闭（可在硬件部署前再打开做保守化）。
         self.rewards.joint_vel_limits.weight = 0
-        # [惩罚] 底层返回功率（力矩*速度）。负权重进一步约束整体能耗。
+        # 关节功率惩罚（约束机械功输出），降低发热与电池消耗。
         self.rewards.joint_power.weight = -2e-5
-        # [惩罚] 底层检测有指令但速度为0的情况。负权重防止机器人在需要运动时“偷懒”。
+        # 静止命令下站立惩罚项（鼓励“该停就停”）。
+        # 权重绝对值越大，零速命令时越倾向快速收敛到稳态。
         self.rewards.stand_still.weight = -8.0
-        # [惩罚] 底层返回关节偏离默认姿态的程度。负权重鼓励保持自然的站立构型。
+        # 关节位置正则惩罚（通常相对默认姿态/安全姿态），抑制异常构型。
         self.rewards.joint_pos_penalty.weight = -5.0
-        # [惩罚] 底层返回左右腿关节位置的不对称差值。负权重鼓励走出对称步态。
+        # 镜像对称惩罚: 约束对角腿运动统计相近，减少“偏腿”步态。
         self.rewards.joint_mirror.weight = -0.05
+        # 指定镜像关节对:
+        # - FR 对 RL
+        # - FL 对 RR
+        # 有助于形成更自然的对角步态模式。
         self.rewards.joint_mirror.params["mirror_joints"] = [
             ["FR_(hip|thigh|calf).*", "RL_(hip|thigh|calf).*"],
             ["FL_(hip|thigh|calf).*", "RR_(hip|thigh|calf).*"],
         ]
 
-        # Action penalties 动作平滑性
-        # [惩罚] 底层返回相邻时刻动作的变化量平方。负权重提高控制信号的平滑性，保护执行器。
+        # Action penalties
+        # 动作变化率惩罚，抑制相邻时刻动作突变，提升控制平滑性与可部署性。
         self.rewards.action_rate_l2.weight = -0.20
 
-        # Contact sensor 接触相关
-        # [惩罚] 底层检测非足端身体部位（如膝盖、肚子）的接触。极大负权重防止摔倒或擦地。
-        self.rewards.undesired_contacts.weight = -50.0
+        # Contact sensor
+        # 非足端 body 接触惩罚（如躯干/大腿触地），鼓励“只让脚接触地面”。
+        self.rewards.undesired_contacts.weight = -1.0
         self.rewards.undesired_contacts.params["sensor_cfg"].body_names = [f"^(?!.*{self.foot_link_name}).*"]
-        # [惩罚] 底层返回足端接触力的平方。负权重缓冲落地冲击，实现柔顺触地。
+        # 足端接触力惩罚，避免落脚冲击过大。
+        # 过大可能导致“轻触地”倾向，影响抓地与推进效率。
         self.rewards.contact_forces.weight = -1.5e-4
         self.rewards.contact_forces.params["sensor_cfg"].body_names = [self.foot_link_name]
 
-        # Velocity-tracking rewards 速度跟踪主任务
-        # [奖励] 底层使用 exp(-线速度误差^2)。核心正权重，驱动机器人精准跟踪前后/左右速度指令。
+        # Velocity-tracking rewards
+        # 线速度追踪主奖励（xy 平面，指数型）。
+        # 常为 locomotion 核心驱动项，值越大越优先“跟得上命令”。
         self.rewards.track_lin_vel_xy_exp.weight = 8.0
-        # [奖励] 底层使用 exp(-角速度误差^2)。核心正权重，驱动机器人精准跟踪转向指令。
+        # 偏航角速度追踪奖励（绕 z 转向），支持转向命令执行。
         self.rewards.track_ang_vel_z_exp.weight = 4.0
 
-        # Others 其他步态/稳定性项
-        # 摆腿腾空时间奖励（避免拖脚）
-        self.rewards.feet_air_time.weight = 10.0   #（改了20.0）
-        # 腾空时间门槛，小于该值时奖励效果受限
+        # Others
+        # 足端腾空时间奖励: 鼓励形成明确摆动相，避免拖脚。
+        self.rewards.feet_air_time.weight = 10.0
+        # 只在腾空时间超过阈值时开始计入（单位 s），避免“微小离地”刷分。
         self.rewards.feet_air_time.params["threshold"] = 0.5
         self.rewards.feet_air_time.params["sensor_cfg"].body_names = [self.foot_link_name]
-        # [惩罚] 底层返回各腿腾空时间的方差。负权重鼓励四条腿的步态节律更加均匀。
+        # 腾空时间方差惩罚: 抑制四腿步态节律差异过大，提升步态均匀性。
         self.rewards.feet_air_time_variance.weight = -1.0
         self.rewards.feet_air_time_variance.params["sensor_cfg"].body_names = [self.foot_link_name]
-        # 足端接触奖励关闭
+        # 足接触奖励（可用于鼓励稳定支撑），当前关闭。
         self.rewards.feet_contact.weight = 0
         self.rewards.feet_contact.params["sensor_cfg"].body_names = [self.foot_link_name]
-        # [奖励] 底层检测静止时的足端接触。微小正权重鼓励机器人在无指令时站稳。
+        # 无速度命令时的足接触奖励: 鼓励静止时脚不乱抬，站姿更稳。
         self.rewards.feet_contact_without_cmd.weight = 0.1
         self.rewards.feet_contact_without_cmd.params["sensor_cfg"].body_names = [self.foot_link_name]
-        # 绊脚惩罚关闭
-        self.rewards.feet_stumble.weight = 0
+        # 绊脚/碰撞惩罚，当前关闭（可按地形难度逐步启用）。
+        self.rewards.feet_stumble.weight = 0.0
         self.rewards.feet_stumble.params["sensor_cfg"].body_names = [self.foot_link_name]
-        # [惩罚] 底层检测触地时足端的水平滑动速度。负权重防止脚底打滑，增加抓地力。
+        # 足端滑动惩罚: 脚着地后相对地面滑移越大，惩罚越大。
         self.rewards.feet_slide.weight = -0.1
         self.rewards.feet_slide.params["sensor_cfg"].body_names = [self.foot_link_name]
         self.rewards.feet_slide.params["asset_cfg"].body_names = [self.foot_link_name]
-        # [奖励] 底层使用 exp(-抬腿高度误差^2)。正权重鼓励机器人将脚抬到指定高度以跨越障碍。
-        self.rewards.feet_height.weight = 0.0  #（改了0）
-        self.rewards.feet_height.params["target_height"] = 0.08 #（改了0.05）
+        # 足端绝对高度目标项（常用于抬脚高度约束），当前关闭。
+        self.rewards.feet_height.weight = 0.0
+        self.rewards.feet_height.params["target_height"] = 0.08
         self.rewards.feet_height.params["asset_cfg"].body_names = [self.foot_link_name]
-        # [惩罚] 底层检测足端相对于机身的垂直位置。负权重防止腿部过度塌陷或蜷缩。
+        # 相对机身的足端高度惩罚（body frame），约束抬腿轨迹不过高/不过低。
+        # target_height=-0.2 表示期望脚位于机身下方一定距离处。
         self.rewards.feet_height_body.weight = -15.0
         self.rewards.feet_height_body.params["target_height"] = -0.27
         self.rewards.feet_height_body.params["asset_cfg"].body_names = [self.foot_link_name]
-        # [奖励] 底层检测对角腿（FL-RR, FR-RL）的腾空同步性。正权重鼓励走出稳定的对角小跑步态。
+        # 步态同步奖励: 鼓励对角腿成对同步（trot 风格）。
         self.rewards.feet_gait.weight = 0.5
         self.rewards.feet_gait.params["synced_feet_pair_names"] = (("FL_calf", "RR_calf"), ("FR_calf", "RL_calf"))
-        # [奖励] 底层检测机身Z轴是否与重力方向相反。正权重作为最后的防线，防止机器人彻底翻倒。
+        # 机身“向上”姿态奖励（保持重力反方向对齐），提升整体直立稳定性。
         self.rewards.upward.weight = 1.0
 
         # 将权重为0的奖励项禁用，减少无效计算与配置噪声

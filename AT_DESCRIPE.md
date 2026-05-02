@@ -37,8 +37,8 @@ cd /workspace/isaaclab_extension_template
 
 
 /workspace/isaaclab/isaaclab.sh -p scripts/reinforcement_learning/rsl_rl/play.py \
-  --task=RobotLab-Isaac-Velocity-Flat-ATDog-Dog2-v0 \
-  --checkpoint=/workspace/isaaclab_extension_template/logs/rsl_rl/atdog_dog2_flat/2026-04-26_10-41-00/model_5195.pt \
+  --task=RobotLab-Isaac-Velocity-Rough-ATDog-Dog2-v0 \
+  --checkpoint=/workspace/isaaclab_extension_template/logs/rsl_rl/atdog_dog2_rough/2026-05-01_13-28-32/model_14400.pt \
   --num_envs=1
 
 ```
