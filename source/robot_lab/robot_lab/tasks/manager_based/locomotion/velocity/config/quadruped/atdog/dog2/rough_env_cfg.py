@@ -35,7 +35,7 @@ DOG2_STAIRS_TERRAIN_CFG = terrain_gen.TerrainGeneratorCfg(
     sub_terrains={
         "stairs": terrain_gen.MeshInvertedPyramidStairsTerrainCfg(
             proportion=1.0,
-            step_height_range=(0.05, 0.06),#(最初0.07-0.13)
+            step_height_range=(0.09, 0.11),#(最初0.07-0.13)
             step_width=0.30,
             platform_width=3.0,
             border_width=1.0,
@@ -43,7 +43,7 @@ DOG2_STAIRS_TERRAIN_CFG = terrain_gen.TerrainGeneratorCfg(
         ),
         "stairs2": terrain_gen.MeshPyramidStairsTerrainCfg(
             proportion=1.0,
-            step_height_range=(0.05, 0.06),
+            step_height_range=(0.09, 0.11),
             step_width=0.30,
             platform_width=3.0,
             border_width=1.0,
@@ -190,9 +190,9 @@ class ATDogDog2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.flat_orientation_l2.weight = 0
         # 机身高度跟踪惩罚: 鼓励 base 高度接近 target_height。
         # 粗糙地形里若设太大，策略可能过于僵硬，不利于跨坎/踏石。
-        self.rewards.base_height_l2.weight = 0
+        self.rewards.base_height_l2.weight = -0.5
         # 目标机身高度（单位 m）。
-        self.rewards.base_height_l2.params["target_height"] = 0.27
+        self.rewards.base_height_l2.params["target_height"] = 0.3
         # 指定用 base 刚体计算该项（避免多 body 统计带来歧义）。
         self.rewards.base_height_l2.params["asset_cfg"].body_names = [self.base_link_name]
         # 惩罚机身线加速度（平滑机身受力/运动），当前关闭。
@@ -237,7 +237,7 @@ class ATDogDog2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
 
         # Contact sensor
         # 非足端 body 接触惩罚（如躯干/大腿触地），鼓励“只让脚接触地面”。
-        self.rewards.undesired_contacts.weight = -15.0
+        self.rewards.undesired_contacts.weight = -20.0
         self.rewards.undesired_contacts.params["sensor_cfg"].body_names = [f"^(?!.*{self.foot_link_name}).*"]
         # 足端接触力惩罚，避免落脚冲击过大。
         # 过大可能导致“轻触地”倾向，影响抓地与推进效率。
@@ -247,9 +247,9 @@ class ATDogDog2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         # Velocity-tracking rewards
         # 线速度追踪主奖励（xy 平面，指数型）。
         # 常为 locomotion 核心驱动项，值越大越优先“跟得上命令”。
-        self.rewards.track_lin_vel_xy_exp.weight = 20.0
+        self.rewards.track_lin_vel_xy_exp.weight = 25.0
         # 偏航角速度追踪奖励（绕 z 转向），支持转向命令执行。
-        self.rewards.track_ang_vel_z_exp.weight = 18.0
+        self.rewards.track_ang_vel_z_exp.weight = 20.0
 
         # Others
         # 足端腾空时间奖励: 鼓励形成明确摆动相，避免拖脚。
