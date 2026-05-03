@@ -82,7 +82,7 @@ class ATDogDog2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         # ------------------------------Scene 场景与传感器------------------------------
         # 覆写默认 rough terrain：仅使用固定参数台阶地形
         self.scene.terrain.terrain_type = "generator"
-        self.scene.terrain.terrain_generator = DOG2_STAIRS_TERRAIN_CFG
+        self.scene.terrain.terrain_generator = DOG2_OBSTACLE_TERRAIN_CFG
         # 指定机器人资产，并放置到每个并行环境的 Robot prim 下
         self.scene.robot = AT_DOG2_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
         # 将高度扫描器挂到机身 base 上，保证地形感知参考系一致
