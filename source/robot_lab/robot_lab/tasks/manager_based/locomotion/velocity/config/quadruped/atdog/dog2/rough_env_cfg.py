@@ -17,37 +17,37 @@ from robot_lab.tasks.manager_based.locomotion.velocity.velocity_env_cfg import L
 # use local assets
 from robot_lab.assets.atdog import AT_DOG2_CFG  # isort: skip
 
-# 自定义台阶地形（倒金字塔上台阶）:
-# - 台阶高 10cm
-# - 台阶水平长度 30cm
-# 说明:
-# 使用 MeshInvertedPyramidStairsTerrainCfg（与 Isaac Lab 默认 rough 配置一致）
-# 生成倒金字塔台阶，机器人可从低处向高处持续上台阶。
-DOG2_STAIRS_TERRAIN_CFG = terrain_gen.TerrainGeneratorCfg(
+# 自定义台阶地形（长条形障碍）:
+DOG2_OBSTACLE_TERRAIN_CFG = terrain_gen.TerrainGeneratorCfg(
     size=(8.0, 8.0),
-    border_width=20.0,
+    border_width=2.0,
     num_rows=10,
     num_cols=20,
-    horizontal_scale=0.1,
-    vertical_scale=0.005,
+    horizontal_scale=0.01,   # 建议更细，50mm障碍边缘更准确
+    vertical_scale=0.005,    # 0.15m = 30个高度格
     slope_threshold=0.75,
     use_cache=False,
     sub_terrains={
-        "stairs": terrain_gen.MeshInvertedPyramidStairsTerrainCfg(
+        "long_bars": terrain_gen.MeshRepeatedBoxesTerrainCfg(
             proportion=1.0,
-            step_height_range=(0.09, 0.11),#(最初0.07-0.13)
-            step_width=0.30,
-            platform_width=3.0,
-            border_width=1.0,
-            holes=False,
-        ),
-        "stairs2": terrain_gen.MeshPyramidStairsTerrainCfg(
-            proportion=1.0,
-            step_height_range=(0.09, 0.11),
-            step_width=0.30,
-            platform_width=3.0,
-            border_width=1.0,
-            holes=False,
+            platform_width=1.0,
+            # 关闭课程随机：start=end，得到固定规格障碍
+            object_params_start=terrain_gen.MeshRepeatedBoxesTerrainCfg.ObjectCfg(
+                num_objects=8,          # 每块子地形障碍数量，可调
+                height=0.15,            # 150 mm
+                size=(0.05, 1.2),       # (x方向厚度, y方向长度) -> 50mm厚 + 长条
+                max_yx_angle=0.0,
+                degrees=True,
+            ),
+            object_params_end=terrain_gen.MeshRepeatedBoxesTerrainCfg.ObjectCfg(
+                num_objects=8,
+                height=0.15,
+                size=(0.05, 1.2),
+                max_yx_angle=0.0,
+                degrees=True,
+            ),
+            abs_height_noise=(0.0, 0.0),
+            rel_height_noise=(1.0, 1.0),
         ),
     },
 )
