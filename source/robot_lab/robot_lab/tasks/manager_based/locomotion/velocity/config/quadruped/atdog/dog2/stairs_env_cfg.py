@@ -23,7 +23,7 @@ from robot_lab.assets.atdog import AT_DOG2_CFG  # isort: skip
 # 说明:
 # 使用 MeshInvertedPyramidStairsTerrainCfg（与 Isaac Lab 默认 rough 配置一致）
 # 生成倒金字塔台阶，机器人可从低处向高处持续上台阶。
-DOG2_ROUGH_TERRAIN_CFG = terrain_gen.TerrainGeneratorCfg(
+DOG2_STAIRS_TERRAIN_CFG = terrain_gen.TerrainGeneratorCfg(
     size=(8.0, 8.0),
     border_width=20.0,
     num_rows=10,
@@ -54,7 +54,7 @@ DOG2_ROUGH_TERRAIN_CFG = terrain_gen.TerrainGeneratorCfg(
 
 
 @configclass
-class ATDogDog2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
+class ATDogDog2StairsEnvCfg(LocomotionVelocityRoughEnvCfg):
     # 机身主刚体名称，用于:
     # 1) 传感器挂载（高度扫描器）
     # 2) 质量/质心/外力随机化时筛选 body
@@ -82,7 +82,7 @@ class ATDogDog2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         # ------------------------------Scene 场景与传感器------------------------------
         # 覆写默认 rough terrain：仅使用固定参数台阶地形
         self.scene.terrain.terrain_type = "generator"
-        self.scene.terrain.terrain_generator = DOG2_ROUGH_TERRAIN_CFG
+        self.scene.terrain.terrain_generator = DOG2_STAIRS_TERRAIN_CFG
         # 指定机器人资产，并放置到每个并行环境的 Robot prim 下
         self.scene.robot = AT_DOG2_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
         # 将高度扫描器挂到机身 base 上，保证地形感知参考系一致
@@ -289,7 +289,7 @@ class ATDogDog2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.upward.weight = 1.5
 
         # 将权重为0的奖励项禁用，减少无效计算与配置噪声
-        if self.__class__.__name__ == "ATDogDog2RoughEnvCfg":
+        if self.__class__.__name__ == "ATDogDog2StairsEnvCfg":
             self.disable_zero_weight_rewards()
 
         # ------------------------------Terminations 终止条件------------------------------

@@ -17,44 +17,44 @@ from robot_lab.tasks.manager_based.locomotion.velocity.velocity_env_cfg import L
 # use local assets
 from robot_lab.assets.atdog import AT_DOG2_CFG  # isort: skip
 
-# 自定义台阶地形（倒金字塔上台阶）:
-# - 台阶高 10cm
-# - 台阶水平长度 30cm
-# 说明:
-# 使用 MeshInvertedPyramidStairsTerrainCfg（与 Isaac Lab 默认 rough 配置一致）
-# 生成倒金字塔台阶，机器人可从低处向高处持续上台阶。
-DOG2_ROUGH_TERRAIN_CFG = terrain_gen.TerrainGeneratorCfg(
+# 自定义台阶地形（长条形障碍）:
+DOG2_OBSTACLE_TERRAIN_CFG = terrain_gen.TerrainGeneratorCfg(
     size=(8.0, 8.0),
-    border_width=20.0,
+    border_width=2.0,
     num_rows=10,
     num_cols=20,
-    horizontal_scale=0.1,
-    vertical_scale=0.005,
+    horizontal_scale=0.01,   # 建议更细，50mm障碍边缘更准确
+    vertical_scale=0.005,    # 0.15m = 30个高度格
     slope_threshold=0.75,
     use_cache=False,
     sub_terrains={
-        "stairs": terrain_gen.MeshInvertedPyramidStairsTerrainCfg(
+        "long_bars": terrain_gen.MeshRepeatedBoxesTerrainCfg(
             proportion=1.0,
-            step_height_range=(0.09, 0.11),#(最初0.07-0.13)
-            step_width=0.30,
-            platform_width=3.0,
-            border_width=1.0,
-            holes=False,
-        ),
-        "stairs2": terrain_gen.MeshPyramidStairsTerrainCfg(
-            proportion=1.0,
-            step_height_range=(0.09, 0.11),
-            step_width=0.30,
-            platform_width=3.0,
-            border_width=1.0,
-            holes=False,
+            platform_width=1.0,
+            # 关闭课程随机：start=end，得到固定规格障碍
+            object_params_start=terrain_gen.MeshRepeatedBoxesTerrainCfg.ObjectCfg(
+                num_objects=16,          # 每块子地形障碍数量，可调
+                height=0.3,            # 150 mm
+                size=(0.03, 1.6),       # (x方向厚度, y方向长度) -> 50mm厚 + 长条
+                max_yx_angle=0.0,
+                degrees=True,
+            ),
+            object_params_end=terrain_gen.MeshRepeatedBoxesTerrainCfg.ObjectCfg(
+                num_objects=16,
+                height=0.3,
+                size=(0.03, 1.6),
+                max_yx_angle=0.0,
+                degrees=True,
+            ),
+            abs_height_noise=(0.0, 0.0),
+            rel_height_noise=(1.0, 1.0),
         ),
     },
 )
 
 
 @configclass
-class ATDogDog2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
+class ATDogDog2SandEnvCfg(LocomotionVelocityRoughEnvCfg):
     # 机身主刚体名称，用于:
     # 1) 传感器挂载（高度扫描器）
     # 2) 质量/质心/外力随机化时筛选 body
@@ -82,7 +82,7 @@ class ATDogDog2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         # ------------------------------Scene 场景与传感器------------------------------
         # 覆写默认 rough terrain：仅使用固定参数台阶地形
         self.scene.terrain.terrain_type = "generator"
-        self.scene.terrain.terrain_generator = DOG2_ROUGH_TERRAIN_CFG
+        self.scene.terrain.terrain_generator = DOG2_OBSTACLE_TERRAIN_CFG
         # 指定机器人资产，并放置到每个并行环境的 Robot prim 下
         self.scene.robot = AT_DOG2_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
         # 将高度扫描器挂到机身 base 上，保证地形感知参考系一致
@@ -190,7 +190,7 @@ class ATDogDog2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.flat_orientation_l2.weight = 0
         # 机身高度跟踪惩罚: 鼓励 base 高度接近 target_height。
         # 粗糙地形里若设太大，策略可能过于僵硬，不利于跨坎/踏石。
-        self.rewards.base_height_l2.weight = -0.5
+        self.rewards.base_height_l2.weight = -0.2
         # 目标机身高度（单位 m）。
         self.rewards.base_height_l2.params["target_height"] = 0.3
         # 指定用 base 刚体计算该项（避免多 body 统计带来歧义）。
@@ -253,7 +253,7 @@ class ATDogDog2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
 
         # Others
         # 足端腾空时间奖励: 鼓励形成明确摆动相，避免拖脚。
-        self.rewards.feet_air_time.weight = 10.0
+        self.rewards.feet_air_time.weight = 7.0
         # 只在腾空时间超过阈值时开始计入（单位 s），避免“微小离地”刷分。
         self.rewards.feet_air_time.params["threshold"] = 0.3
         self.rewards.feet_air_time.params["sensor_cfg"].body_names = [self.foot_link_name]
@@ -275,7 +275,7 @@ class ATDogDog2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.feet_slide.params["asset_cfg"].body_names = [self.foot_link_name]
         # 足端绝对高度目标项（常用于抬脚高度约束），当前关闭。
         self.rewards.feet_height.weight = -5
-        self.rewards.feet_height.params["target_height"] = 0.1
+        self.rewards.feet_height.params["target_height"] = 0.16
         self.rewards.feet_height.params["asset_cfg"].body_names = [self.foot_link_name]
         # 相对机身的足端高度惩罚（body frame），约束抬腿轨迹不过高/不过低。
         # target_height=-0.2 表示期望脚位于机身下方一定距离处。
@@ -289,7 +289,7 @@ class ATDogDog2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.upward.weight = 1.5
 
         # 将权重为0的奖励项禁用，减少无效计算与配置噪声
-        if self.__class__.__name__ == "ATDogDog2RoughEnvCfg":
+        if self.__class__.__name__ == "ATDogDog2SandEnvCfg":
             self.disable_zero_weight_rewards()
 
         # ------------------------------Terminations 终止条件------------------------------
