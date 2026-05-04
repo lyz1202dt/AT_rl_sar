@@ -183,7 +183,7 @@ cmd_start() {
         echo "[INFO] X11 not detected. Container will start without GUI forwarding."
     fi
     echo "[INFO] Runtime proxy: ${HTTP_PROXY}"
-    run_compose up --build -d "${SERVICE_NAME}"
+    run_compose up -d "${SERVICE_NAME}"
     if wait_for_container_running; then
         echo "[INFO] Container '${CONTAINER_NAME}' is ready."
     else
