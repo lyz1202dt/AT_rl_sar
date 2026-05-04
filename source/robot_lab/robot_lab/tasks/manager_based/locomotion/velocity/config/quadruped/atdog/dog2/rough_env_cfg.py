@@ -33,16 +33,16 @@ DOG2_OBSTACLE_TERRAIN_CFG = terrain_gen.TerrainGeneratorCfg(
             platform_width=1.0,
             # 关闭课程随机：start=end，得到固定规格障碍
             object_params_start=terrain_gen.MeshRepeatedBoxesTerrainCfg.ObjectCfg(
-                num_objects=8,          # 每块子地形障碍数量，可调
-                height=0.15,            # 150 mm
-                size=(0.05, 1.2),       # (x方向厚度, y方向长度) -> 50mm厚 + 长条
+                num_objects=16,          # 每块子地形障碍数量，可调
+                height=0.3,            # 150 mm
+                size=(0.03, 1.6),       # (x方向厚度, y方向长度) -> 50mm厚 + 长条
                 max_yx_angle=0.0,
                 degrees=True,
             ),
             object_params_end=terrain_gen.MeshRepeatedBoxesTerrainCfg.ObjectCfg(
-                num_objects=8,
-                height=0.15,
-                size=(0.05, 1.2),
+                num_objects=16,
+                height=0.3,
+                size=(0.03, 1.6),
                 max_yx_angle=0.0,
                 degrees=True,
             ),
@@ -190,7 +190,7 @@ class ATDogDog2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.flat_orientation_l2.weight = 0
         # 机身高度跟踪惩罚: 鼓励 base 高度接近 target_height。
         # 粗糙地形里若设太大，策略可能过于僵硬，不利于跨坎/踏石。
-        self.rewards.base_height_l2.weight = -0.5
+        self.rewards.base_height_l2.weight = -0.2
         # 目标机身高度（单位 m）。
         self.rewards.base_height_l2.params["target_height"] = 0.3
         # 指定用 base 刚体计算该项（避免多 body 统计带来歧义）。
@@ -253,7 +253,7 @@ class ATDogDog2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
 
         # Others
         # 足端腾空时间奖励: 鼓励形成明确摆动相，避免拖脚。
-        self.rewards.feet_air_time.weight = 10.0
+        self.rewards.feet_air_time.weight = 7.0
         # 只在腾空时间超过阈值时开始计入（单位 s），避免“微小离地”刷分。
         self.rewards.feet_air_time.params["threshold"] = 0.3
         self.rewards.feet_air_time.params["sensor_cfg"].body_names = [self.foot_link_name]
@@ -275,7 +275,7 @@ class ATDogDog2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.feet_slide.params["asset_cfg"].body_names = [self.foot_link_name]
         # 足端绝对高度目标项（常用于抬脚高度约束），当前关闭。
         self.rewards.feet_height.weight = -5
-        self.rewards.feet_height.params["target_height"] = 0.1
+        self.rewards.feet_height.params["target_height"] = 0.16
         self.rewards.feet_height.params["asset_cfg"].body_names = [self.foot_link_name]
         # 相对机身的足端高度惩罚（body frame），约束抬腿轨迹不过高/不过低。
         # target_height=-0.2 表示期望脚位于机身下方一定距离处。
