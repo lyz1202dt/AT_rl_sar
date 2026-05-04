@@ -8,3 +8,6 @@
 
 """Configurations for ATDog velocity-based locomotion environments."""
 
+# Import sub-packages to register gym environments.
+from . import dog2  # noqa: F401
+from . import dog2_amp  # noqa: F401
