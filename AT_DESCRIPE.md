@@ -14,11 +14,11 @@ docker/container.sh enter
 cd /workspace/isaaclab_extension_template
 /workspace/isaaclab/isaaclab.sh -p /workspace/isaaclab_extension_template/scripts/reinforcement_learning/rsl_rl/train.py \
   --task=RobotLab-Isaac-Velocity-Flat-ATDog-Dog-v0 \
-  --num_envs=8000 \
-  --max_iterations=200 \
+  --num_envs=7000 \
+  --max_iterations=2000\
   --resume \
-  --load_run=2026-05-04_14-10-42 \
-  --checkpoint=model_1097.pt \
+  --load_run=2026-05-05_00-22-54 \
+  --checkpoint=model_2000.pt \
   --headless 
 
 
@@ -30,10 +30,8 @@ cd /workspace/isaaclab_extension_template
 ```bash
 cd /workspace/isaaclab_extension_template
 /workspace/isaaclab/isaaclab.sh -p scripts/reinforcement_learning/rsl_rl/play.py \
-  --task=RobotLab-Isaac-Velocity-Flat-Unitree-Go2-v0 \
-  --checkpoint=/workspace/isaaclab_extension_template/logs/rsl_rl/unitree_go2_flat/2026-04-19_08-25-46/model_1999.pt \
-  --num_envs=1 \
-  --headless
+  --task=RobotLab-Isaac-Velocity-Flat-ATDog-Dog-v0 \
+  --checkpoint=/workspace/isaaclab_extension_template/logs/rsl_rl/atdog_dog_flat/2026-05-05_00-22-54/model_2000.pt 
 
 
 /workspace/isaaclab/isaaclab.sh -p scripts/reinforcement_learning/rsl_rl/play.py \
