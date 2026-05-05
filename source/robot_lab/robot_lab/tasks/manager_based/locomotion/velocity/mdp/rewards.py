@@ -393,6 +393,34 @@ def feet_air_time_variance_penalty(env: ManagerBasedRLEnv, sensor_cfg: SceneEnti
     return reward
 
 
+def wheel_vel_variance_penalty(
+    env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")
+) -> torch.Tensor:
+    """Penalize variance in wheel velocities (absolute values) to encourage uniform wheel speeds.
+    
+    This reward encourages all four wheels to rotate at similar speeds (in absolute value),
+    which helps maintain stable and coordinated wheeled locomotion.
+    
+    Args:
+        env: The RL environment.
+        asset_cfg: Scene entity configuration for the robot asset. Defaults to "robot".
+            The joint_ids should correspond to the four wheel joints.
+    
+    Returns:
+        Penalty value based on the variance of absolute wheel velocities.
+    """
+    # extract the used quantities (to enable type-hinting)
+    asset: Articulation = env.scene[asset_cfg.name]
+    # get wheel joint velocities
+    wheel_vel = asset.data.joint_vel[:, asset_cfg.joint_ids]
+    # compute variance of absolute wheel velocities
+    wheel_vel_abs = torch.abs(wheel_vel)
+    reward = torch.var(wheel_vel_abs, dim=1)
+    # scale by gravity to reduce penalty when robot is not upright
+    reward *= torch.clamp(-env.scene["robot"].data.projected_gravity_b[:, 2], 0, 0.7) / 0.7
+    return reward
+
+
 def feet_contact(
     env: ManagerBasedRLEnv, command_name: str, expect_contact_num: int, sensor_cfg: SceneEntityCfg
 ) -> torch.Tensor:

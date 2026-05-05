@@ -549,6 +549,12 @@ class RewardsCfg:
         params={"sensor_cfg": SceneEntityCfg("contact_forces", body_names="")},
     )
 
+    wheel_vel_variance = RewTerm(
+        func=mdp.wheel_vel_variance_penalty,
+        weight=0,
+        params={"asset_cfg": SceneEntityCfg("robot", joint_names="")},
+    )
+
     feet_gait = RewTerm(
         func=mdp.GaitReward,
         weight=0.0,
