@@ -178,9 +178,9 @@ class ATDogDogRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
 
         # Root penalties
         # 惩罚机身 z 方向线速度，抑制“跳跃/颠簸”
-        self.rewards.lin_vel_z_l2.weight = -4.0
+        self.rewards.lin_vel_z_l2.weight = -10.0
         # 惩罚机身 x/y 角速度（roll/pitch 旋转速度），降低侧翻和点头抖动
-        self.rewards.ang_vel_xy_l2.weight = -0.1
+        self.rewards.ang_vel_xy_l2.weight = -0.15
         # 惩罚机身姿态偏离水平（roll/pitch 倾斜角误差）
         self.rewards.flat_orientation_l2.weight = 0
         # 机身高度跟踪惩罚（当前关闭）
@@ -194,7 +194,7 @@ class ATDogDogRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
 
         # Joint penalties
         # 腿部力矩 L2 惩罚，控制能耗并抑制“暴力驱动”
-        self.rewards.joint_torques_l2.weight = -2.5e-5
+        self.rewards.joint_torques_l2.weight = -2.5e-6
         self.rewards.joint_torques_l2.params["asset_cfg"].joint_names = self.leg_joint_names
         # 轮部力矩 L2 惩罚（单独项，当前关闭）
         self.rewards.joint_torques_wheel_l2.weight = -1.0
@@ -203,7 +203,7 @@ class ATDogDogRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.joint_vel_l2.weight = 0
         self.rewards.joint_vel_l2.params["asset_cfg"].joint_names = self.leg_joint_names
         # 轮部关节速度 L2 惩罚（当前关闭）
-        self.rewards.joint_vel_wheel_l2.weight = -2.5e-3
+        self.rewards.joint_vel_wheel_l2.weight = -2.5e-2
         self.rewards.joint_vel_wheel_l2.params["asset_cfg"].joint_names = self.wheel_joint_names
         # 腿部关节加速度 L2 惩罚，鼓励动作更平滑
         self.rewards.joint_acc_l2.weight = -2.5e-7
@@ -263,7 +263,7 @@ class ATDogDogRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         # 足端腾空时间奖励: 鼓励形成明确摆动相，避免拖脚
         self.rewards.feet_air_time.weight = 15.0
         # 只在腾空时间超过阈值时开始计入（单位 s），避免“微小离地”刷分
-        self.rewards.feet_air_time.params["threshold"] = 0.15
+        self.rewards.feet_air_time.params["threshold"] = 0.3
         self.rewards.feet_air_time.params["sensor_cfg"].body_names = [self.foot_link_name]
         # 足端接触统计项（当前关闭）
         self.rewards.feet_contact.weight = 1.0
@@ -294,7 +294,7 @@ class ATDogDogRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.feet_air_time_variance.params["sensor_cfg"].body_names = [self.foot_link_name]     
 
         # 机身朝上约束奖励
-        self.rewards.upward.weight = 8.0
+        self.rewards.upward.weight = 15.0
 
         # If the weight of rewards is 0, set rewards to None
         if self.__class__.__name__ == "ATDogDogRoughEnvCfg":
