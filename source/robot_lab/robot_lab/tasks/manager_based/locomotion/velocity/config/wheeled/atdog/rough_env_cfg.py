@@ -247,10 +247,10 @@ class ATDogDogRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
 
         # Contact sensor
         # 非足端 body 接触惩罚（如躯干/大腿触地），鼓励“只让脚接触地面”
-        self.rewards.undesired_contacts.weight = -10.0
+        self.rewards.undesired_contacts.weight = -15.0
         self.rewards.undesired_contacts.params["sensor_cfg"].body_names = [f"^(?!.*{self.foot_link_name}).*"]
         # 足端接触力惩罚，避免落脚冲击过大
-        self.rewards.contact_forces.weight = -1.5e-4
+        self.rewards.contact_forces.weight = -1.5e-5
         self.rewards.contact_forces.params["sensor_cfg"].body_names = [self.foot_link_name]
 
         # Velocity-tracking rewards
@@ -266,10 +266,10 @@ class ATDogDogRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.feet_air_time.params["threshold"] = 0.3
         self.rewards.feet_air_time.params["sensor_cfg"].body_names = [self.foot_link_name]
         # 足端接触统计项（当前关闭）
-        self.rewards.feet_contact.weight = 1.0
+        self.rewards.feet_contact.weight = 5.0
         self.rewards.feet_contact.params["sensor_cfg"].body_names = [self.foot_link_name]
         # 无速度命令时保持接触（鼓励原地稳定）
-        self.rewards.feet_contact_without_cmd.weight = 0.1
+        self.rewards.feet_contact_without_cmd.weight = 0.5
         self.rewards.feet_contact_without_cmd.params["sensor_cfg"].body_names = [self.foot_link_name]
         # 绊脚惩罚（当前关闭）
         self.rewards.feet_stumble.weight = 0
