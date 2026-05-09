@@ -243,7 +243,7 @@ class ATDogDogRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
 
         # Action penalties
         # 动作变化率惩罚，抑制相邻时刻动作突变，提升控制平滑性与可部署性
-        self.rewards.action_rate_l2.weight = -0.1
+        self.rewards.action_rate_l2.weight = -0.5
 
         # Contact sensor
         # 非足端 body 接触惩罚（如躯干/大腿触地），鼓励“只让脚接触地面”
