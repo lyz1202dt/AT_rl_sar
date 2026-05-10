@@ -194,7 +194,7 @@ class ATDogDogRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
 
         # Joint penalties
         # 腿部力矩 L2 惩罚，控制能耗并抑制“暴力驱动”
-        self.rewards.joint_torques_l2.weight = -2.5e-7
+        self.rewards.joint_torques_l2.weight = -2.5e-6
         self.rewards.joint_torques_l2.params["asset_cfg"].joint_names = self.leg_joint_names
         # 轮部力矩 L2 惩罚（单独项，当前关闭）
         self.rewards.joint_torques_wheel_l2.weight = -0.4
@@ -206,7 +206,7 @@ class ATDogDogRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.joint_vel_wheel_l2.weight = -2.5e-2
         self.rewards.joint_vel_wheel_l2.params["asset_cfg"].joint_names = self.wheel_joint_names
         # 腿部关节加速度 L2 惩罚，鼓励动作更平滑
-        self.rewards.joint_acc_l2.weight = -2.5e-7
+        self.rewards.joint_acc_l2.weight = -2.5e-5
         self.rewards.joint_acc_l2.params["asset_cfg"].joint_names = self.leg_joint_names
         # 轮部关节加速度 L2 惩罚
         self.rewards.joint_acc_wheel_l2.weight = -2.5e-6
@@ -243,7 +243,7 @@ class ATDogDogRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
 
         # Action penalties
         # 动作变化率惩罚，抑制相邻时刻动作突变，提升控制平滑性与可部署性
-        self.rewards.action_rate_l2.weight = -0.5
+        self.rewards.action_rate_l2.weight = -1.0
 
         # Contact sensor
         # 非足端 body 接触惩罚（如躯干/大腿触地），鼓励“只让脚接触地面”
