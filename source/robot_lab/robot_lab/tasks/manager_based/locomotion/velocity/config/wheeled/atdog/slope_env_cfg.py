@@ -19,6 +19,27 @@ from robot_lab.tasks.manager_based.locomotion.velocity.velocity_env_cfg import (
 from robot_lab.assets.atdog import AT_DOG_CFG  # isort: skip
 
 
+DOG_SLOPE_TERRAIN_CFG = terrain_gen.TerrainGeneratorCfg(
+    size=(8.0, 8.0),
+    border_width=2.0,
+    num_rows=10,
+    num_cols=20,
+    horizontal_scale=0.1,
+    vertical_scale=0.005,
+    slope_threshold=0.75,
+    use_cache=False,
+    sub_terrains={
+        # 连续缓坡地形:
+        # - slope_range 使用坡度(非角度)，这里上限 tan(20°) ~= 0.364
+        # - min/max 设为同值表示固定最大坡度；若希望课程随机可放宽为区间
+        "gentle_slope": terrain_gen.HfPyramidSlopedTerrainCfg(
+            proportion=1.0,
+            platform_width=1.0,
+            slope_range=(0.0, 0.3),
+        ),
+    },
+)
+
 @configclass
 class ATDogDogActionsCfg(ActionsCfg):
     """Action specifications for the MDP."""
@@ -49,8 +70,10 @@ class ATDogDogRewardsCfg(RewardsCfg):
     )
 
 
+
+
 @configclass
-class ATDogDogRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
+class ATDogDogSlopeEnvCfg(LocomotionVelocityRoughEnvCfg):
     actions: ATDogDogActionsCfg = ATDogDogActionsCfg()
     rewards: ATDogDogRewardsCfg = ATDogDogRewardsCfg()
 
@@ -82,6 +105,8 @@ class ATDogDogRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         # 先继承父类默认配置，再按 ATDog 轮式粗糙地形任务覆写
         super().__post_init__()
 
+        self.scene.terrain.terrain_type = "generator"
+        self.scene.terrain.terrain_generator = DOG_SLOPE_TERRAIN_CFG
         # ------------------------------Scene 场景与传感器------------------------------
         # 指定机器人资产，并放置到每个并行环境的 Robot prim 下
         self.scene.robot = AT_DOG_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
@@ -179,13 +204,13 @@ class ATDogDogRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
 
         # Root penalties
         # 惩罚机身 z 方向线速度，抑制“跳跃/颠簸”
-        self.rewards.lin_vel_z_l2.weight = -10.0
+        self.rewards.lin_vel_z_l2.weight = -7.0
         # 惩罚机身 x/y 角速度（roll/pitch 旋转速度），降低侧翻和点头抖动
-        self.rewards.ang_vel_xy_l2.weight = -0.15
+        self.rewards.ang_vel_xy_l2.weight = -0.12
         # 惩罚机身姿态偏离水平（roll/pitch 倾斜角误差）
         self.rewards.flat_orientation_l2.weight = 0
         # 机身高度跟踪惩罚（当前关闭）
-        self.rewards.base_height_l2.weight = -300
+        self.rewards.base_height_l2.weight = -10
         self.rewards.base_height_l2.params["target_height"] = 0.35
         # 指定用 base 刚体计算该项（避免多 body 统计带来歧义）
         self.rewards.base_height_l2.params["asset_cfg"].body_names = [self.base_link_name]
@@ -198,7 +223,7 @@ class ATDogDogRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.joint_torques_l2.weight = -2.5e-6
         self.rewards.joint_torques_l2.params["asset_cfg"].joint_names = self.leg_joint_names
         # 轮部力矩 L2 惩罚（单独项，当前关闭）
-        self.rewards.joint_torques_wheel_l2.weight = -0.4
+        self.rewards.joint_torques_wheel_l2.weight = -0.1
         self.rewards.joint_torques_wheel_l2.params["asset_cfg"].joint_names = self.wheel_joint_names
         # 腿部关节速度 L2 惩罚（当前关闭）
         self.rewards.joint_vel_l2.weight = 0
@@ -258,7 +283,7 @@ class ATDogDogRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         # 线速度追踪主奖励（xy 平面，指数型）
         self.rewards.track_lin_vel_xy_exp.weight = 50.0
         # 偏航角速度追踪奖励（绕 z 转向）
-        self.rewards.track_ang_vel_z_exp.weight = 50.0
+        self.rewards.track_ang_vel_z_exp.weight = 40.0
 
         # Others
         # 足端腾空时间奖励: 鼓励形成明确摆动相，避免拖脚
@@ -295,10 +320,10 @@ class ATDogDogRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.feet_air_time_variance.params["sensor_cfg"].body_names = [self.foot_link_name]     
 
         # 机身朝上约束奖励
-        self.rewards.upward.weight = 10.0
+        self.rewards.upward.weight = 3.0
 
         # If the weight of rewards is 0, set rewards to None
-        if self.__class__.__name__ == "ATDogDogRoughEnvCfg":
+        if self.__class__.__name__ == "ATDogDogSlopeEnvCfg":
             self.disable_zero_weight_rewards()
 
         # ------------------------------Terminations------------------------------

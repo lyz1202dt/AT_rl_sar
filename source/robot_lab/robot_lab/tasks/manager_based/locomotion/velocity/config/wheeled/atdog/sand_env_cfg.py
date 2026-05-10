@@ -18,6 +18,39 @@ from robot_lab.tasks.manager_based.locomotion.velocity.velocity_env_cfg import (
 ##
 from robot_lab.assets.atdog import AT_DOG_CFG  # isort: skip
 
+DOG_OBSTACLE_TERRAIN_CFG = terrain_gen.TerrainGeneratorCfg(
+    size=(8.0, 8.0),
+    border_width=2.0,
+    num_rows=10,
+    num_cols=20,
+    horizontal_scale=0.01,   # 建议更细，50mm障碍边缘更准确
+    vertical_scale=0.005,    # 0.15m = 30个高度格
+    slope_threshold=0.75,
+    use_cache=False,
+    sub_terrains={
+        "long_bars": terrain_gen.MeshRepeatedBoxesTerrainCfg(
+            proportion=1.0,
+            platform_width=1.0,
+            # 关闭课程随机：start=end，得到固定规格障碍
+            object_params_start=terrain_gen.MeshRepeatedBoxesTerrainCfg.ObjectCfg(
+                num_objects=16,          # 每块子地形障碍数量，可调
+                height=0.3,            # 150 mm
+                size=(0.03, 1.6),       # (x方向厚度, y方向长度) -> 50mm厚 + 长条
+                max_yx_angle=0.0,
+                degrees=True,
+            ),
+            object_params_end=terrain_gen.MeshRepeatedBoxesTerrainCfg.ObjectCfg(
+                num_objects=16,
+                height=0.3,
+                size=(0.03, 1.6),
+                max_yx_angle=0.0,
+                degrees=True,
+            ),
+            abs_height_noise=(0.0, 0.0),
+            rel_height_noise=(1.0, 1.0),
+        ),
+    },
+)
 
 @configclass
 class ATDogDogActionsCfg(ActionsCfg):
@@ -50,7 +83,7 @@ class ATDogDogRewardsCfg(RewardsCfg):
 
 
 @configclass
-class ATDogDogRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
+class ATDogDogSandEnvCfg(LocomotionVelocityRoughEnvCfg):
     actions: ATDogDogActionsCfg = ATDogDogActionsCfg()
     rewards: ATDogDogRewardsCfg = ATDogDogRewardsCfg()
 
@@ -82,6 +115,8 @@ class ATDogDogRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         # 先继承父类默认配置，再按 ATDog 轮式粗糙地形任务覆写
         super().__post_init__()
 
+        self.scene.terrain.terrain_type = "generator"
+        self.scene.terrain.terrain_generator = DOG_OBSTACLE_TERRAIN_CFG
         # ------------------------------Scene 场景与传感器------------------------------
         # 指定机器人资产，并放置到每个并行环境的 Robot prim 下
         self.scene.robot = AT_DOG_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
@@ -298,7 +333,7 @@ class ATDogDogRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.upward.weight = 10.0
 
         # If the weight of rewards is 0, set rewards to None
-        if self.__class__.__name__ == "ATDogDogRoughEnvCfg":
+        if self.__class__.__name__ == "ATDogDogSandEnvCfg":
             self.disable_zero_weight_rewards()
 
         # ------------------------------Terminations------------------------------
