@@ -57,7 +57,7 @@ AT_DOG2_CFG = ArticulationCfg(
         ),
     },
 )
-"""Configuration of atdog dog2 using delayed PD actuators."""
+"""Configuration of atdog dog using delayed PD actuators."""
 
 AT_DOG_CFG = ArticulationCfg(
     spawn=sim_utils.UrdfFileCfg(
@@ -83,7 +83,7 @@ AT_DOG_CFG = ArticulationCfg(
         ),
     ),
     init_state=ArticulationCfg.InitialStateCfg(
-        pos=(0.0, 0.0, 0.25),
+        pos=(0.0, 0.0, 0.35),
         joint_pos={
             ".*_hip_joint": 0.0,
             ".*L_thigh_joint": 0.8,

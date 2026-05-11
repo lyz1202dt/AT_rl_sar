@@ -165,7 +165,7 @@ class ATDogDogSlopeEnvCfg(LocomotionVelocityRoughEnvCfg):
             "pose_range": {
                 "x": (-0.03, 0.03),
                 "y": (-0.03, 0.03),
-                "z": (0.0, 0.02),
+                "z": (0.1, 0.2),
                 "roll": (-0.8, 0.8),
                 "pitch": (-0.8, 0.8),
                 "yaw": (-0.1, 0.1),
@@ -223,7 +223,7 @@ class ATDogDogSlopeEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.joint_torques_l2.weight = -2.5e-6
         self.rewards.joint_torques_l2.params["asset_cfg"].joint_names = self.leg_joint_names
         # 轮部力矩 L2 惩罚（单独项，当前关闭）
-        self.rewards.joint_torques_wheel_l2.weight = -0.1
+        self.rewards.joint_torques_wheel_l2.weight = -0.04
         self.rewards.joint_torques_wheel_l2.params["asset_cfg"].joint_names = self.wheel_joint_names
         # 腿部关节速度 L2 惩罚（当前关闭）
         self.rewards.joint_vel_l2.weight = 0
@@ -320,7 +320,7 @@ class ATDogDogSlopeEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.feet_air_time_variance.params["sensor_cfg"].body_names = [self.foot_link_name]     
 
         # 机身朝上约束奖励
-        self.rewards.upward.weight = 3.0
+        self.rewards.upward.weight = 1.0
 
         # If the weight of rewards is 0, set rewards to None
         if self.__class__.__name__ == "ATDogDogSlopeEnvCfg":
