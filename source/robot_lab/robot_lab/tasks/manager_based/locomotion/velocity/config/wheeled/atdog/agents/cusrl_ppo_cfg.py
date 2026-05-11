@@ -45,7 +45,7 @@ class ATDogDogRoughTrainerCfg(TrainerCfg):
 class ATDogDogSlopeTrainerCfg(TrainerCfg):
     max_iterations = 20000
     save_interval = 100
-    experiment_name = "atdog_dog_rough"
+    experiment_name = "atdog_dog_slope"
     agent_factory = cusrl.ActorCritic.Factory(
         num_steps_per_update=24,
         actor_factory=cusrl.Actor.Factory(
@@ -79,7 +79,7 @@ class ATDogDogSlopeTrainerCfg(TrainerCfg):
 class ATDogDogSandTrainerCfg(TrainerCfg):
     max_iterations = 20000
     save_interval = 100
-    experiment_name = "atdog_dog_rough"
+    experiment_name = "atdog_dog_sand"
     agent_factory = cusrl.ActorCritic.Factory(
         num_steps_per_update=24,
         actor_factory=cusrl.Actor.Factory(
@@ -113,7 +113,7 @@ class ATDogDogSandTrainerCfg(TrainerCfg):
 class ATDogDogStairsTrainerCfg(TrainerCfg):
     max_iterations = 20000
     save_interval = 100
-    experiment_name = "atdog_dog_rough"
+    experiment_name = "atdog_dog_stairs"
     agent_factory = cusrl.ActorCritic.Factory(
         num_steps_per_update=24,
         actor_factory=cusrl.Actor.Factory(
