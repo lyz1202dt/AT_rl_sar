@@ -52,8 +52,8 @@ setup_proxy_env() {
         export HTTPS_PROXY=""
         export ALL_PROXY=""
         export NO_PROXY=""
-        export http_proxy=""
-        export https_proxy=""
+        export http_proxy="192.168.2.180:7890"
+        export https_proxy="192.168.2.180:7890"
         export all_proxy=""
         export no_proxy=""
         return
