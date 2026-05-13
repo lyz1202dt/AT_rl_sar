@@ -43,6 +43,19 @@ has_command() {
 setup_proxy_env() {
     if [[ "${DISABLE_CLASH_PROXY:-0}" == "1" ]]; then
         echo "[INFO] Clash proxy integration disabled by DISABLE_CLASH_PROXY=1."
+        export CLASH_PROXY_SCHEME_ARG=""
+        export CLASH_PROXY_BUILD_HOST_ARG=""
+        export CLASH_PROXY_RUNTIME_HOST_ARG=""
+        export CLASH_PROXY_PORT_ARG=""
+        export CLASH_NO_PROXY_ARG=""
+        export HTTP_PROXY=""
+        export HTTPS_PROXY=""
+        export ALL_PROXY=""
+        export NO_PROXY=""
+        export http_proxy=""
+        export https_proxy=""
+        export all_proxy=""
+        export no_proxy=""
         return
     fi
 
@@ -169,7 +182,11 @@ cmd_build() {
     require_docker
     setup_proxy_env
     echo "[INFO] Building ${SERVICE_NAME} image..."
-    echo "[INFO] Build proxy: ${CLASH_PROXY_SCHEME_ARG}://${CLASH_PROXY_BUILD_HOST_ARG}:${CLASH_PROXY_PORT_ARG}"
+    if [[ "${DISABLE_CLASH_PROXY:-0}" == "1" ]]; then
+        echo "[INFO] Build proxy: disabled"
+    else
+        echo "[INFO] Build proxy: ${CLASH_PROXY_SCHEME_ARG}://${CLASH_PROXY_BUILD_HOST_ARG}:${CLASH_PROXY_PORT_ARG}"
+    fi
     run_compose build "${SERVICE_NAME}"
 }
 
@@ -182,7 +199,11 @@ cmd_start() {
     else
         echo "[INFO] X11 not detected. Container will start without GUI forwarding."
     fi
-    echo "[INFO] Runtime proxy: ${HTTP_PROXY}"
+    if [[ "${DISABLE_CLASH_PROXY:-0}" == "1" ]]; then
+        echo "[INFO] Runtime proxy: disabled"
+    else
+        echo "[INFO] Runtime proxy: ${HTTP_PROXY}"
+    fi
     run_compose up -d "${SERVICE_NAME}"
     if wait_for_container_running; then
         echo "[INFO] Container '${CONTAINER_NAME}' is ready."
@@ -215,7 +236,20 @@ cmd_enter() {
         exec_args+=("-e" "XAUTHORITY=${XAUTHORITY}")
     fi
 
-    docker exec "${exec_args[@]}" "${CONTAINER_NAME}" /bin/bash
+    if [[ "${DISABLE_CLASH_PROXY:-0}" == "1" ]]; then
+        docker exec "${exec_args[@]}" "${CONTAINER_NAME}" env \
+            -u HTTP_PROXY \
+            -u HTTPS_PROXY \
+            -u ALL_PROXY \
+            -u NO_PROXY \
+            -u http_proxy \
+            -u https_proxy \
+            -u all_proxy \
+            -u no_proxy \
+            /bin/bash --noprofile --norc
+    else
+        docker exec "${exec_args[@]}" "${CONTAINER_NAME}" /bin/bash
+    fi
 }
 
 cmd_stop() {

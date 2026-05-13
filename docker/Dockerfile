@@ -18,16 +18,11 @@ ARG CLASH_PROXY_PORT_ARG
 ARG CLASH_NO_PROXY_ARG
 
 ENV DOCKER_ISAACLAB_EXTENSION_TEMPLATE_PATH=${DOCKER_ISAACLAB_EXTENSION_TEMPLATE_PATH_ARG}
-ENV CLASH_PROXY_BUILD_URL=${CLASH_PROXY_SCHEME_ARG}://${CLASH_PROXY_BUILD_HOST_ARG}:${CLASH_PROXY_PORT_ARG}
-ENV CLASH_PROXY_RUNTIME_URL=${CLASH_PROXY_SCHEME_ARG}://${CLASH_PROXY_RUNTIME_HOST_ARG}:${CLASH_PROXY_PORT_ARG}
-ENV HTTP_PROXY=${CLASH_PROXY_RUNTIME_URL}
-ENV HTTPS_PROXY=${CLASH_PROXY_RUNTIME_URL}
-ENV ALL_PROXY=${CLASH_PROXY_RUNTIME_URL}
-ENV http_proxy=${CLASH_PROXY_RUNTIME_URL}
-ENV https_proxy=${CLASH_PROXY_RUNTIME_URL}
-ENV all_proxy=${CLASH_PROXY_RUNTIME_URL}
-ENV NO_PROXY=${CLASH_NO_PROXY_ARG}
-ENV no_proxy=${CLASH_NO_PROXY_ARG}
+ENV CLASH_PROXY_SCHEME_ARG=${CLASH_PROXY_SCHEME_ARG}
+ENV CLASH_PROXY_BUILD_HOST_ARG=${CLASH_PROXY_BUILD_HOST_ARG}
+ENV CLASH_PROXY_RUNTIME_HOST_ARG=${CLASH_PROXY_RUNTIME_HOST_ARG}
+ENV CLASH_PROXY_PORT_ARG=${CLASH_PROXY_PORT_ARG}
+ENV CLASH_NO_PROXY_ARG=${CLASH_NO_PROXY_ARG}
 
 USER root
 
@@ -37,30 +32,40 @@ COPY ../ ${DOCKER_ISAACLAB_EXTENSION_TEMPLATE_PATH}
 # Ensure the Isaac Lab core packages are installed into the Python environment used by Isaac Sim.
 # Some custom/base images only provide aliases to Isaac Sim's python and do not pre-install the
 # editable Isaac Lab packages, which causes `ModuleNotFoundError: No module named 'isaaclab'`.
-RUN HTTP_PROXY=${CLASH_PROXY_BUILD_URL} \
-    HTTPS_PROXY=${CLASH_PROXY_BUILD_URL} \
-    ALL_PROXY=${CLASH_PROXY_BUILD_URL} \
-    http_proxy=${CLASH_PROXY_BUILD_URL} \
-    https_proxy=${CLASH_PROXY_BUILD_URL} \
-    all_proxy=${CLASH_PROXY_BUILD_URL} \
-    NO_PROXY=${CLASH_NO_PROXY_ARG} \
-    no_proxy=${CLASH_NO_PROXY_ARG} \
-    bash -i -c "source ${HOME}/.bashrc && \
+RUN bash -i -c 'source "${HOME}/.bashrc" && \
+    if [[ -n "${CLASH_PROXY_SCHEME_ARG}" && -n "${CLASH_PROXY_BUILD_HOST_ARG}" && -n "${CLASH_PROXY_PORT_ARG}" ]]; then \
+        export CLASH_PROXY_BUILD_URL="${CLASH_PROXY_SCHEME_ARG}://${CLASH_PROXY_BUILD_HOST_ARG}:${CLASH_PROXY_PORT_ARG}" && \
+        export HTTP_PROXY="${CLASH_PROXY_BUILD_URL}" && \
+        export HTTPS_PROXY="${CLASH_PROXY_BUILD_URL}" && \
+        export ALL_PROXY="${CLASH_PROXY_BUILD_URL}" && \
+        export http_proxy="${CLASH_PROXY_BUILD_URL}" && \
+        export https_proxy="${CLASH_PROXY_BUILD_URL}" && \
+        export all_proxy="${CLASH_PROXY_BUILD_URL}" && \
+        export NO_PROXY="${CLASH_NO_PROXY_ARG}" && \
+        export no_proxy="${CLASH_NO_PROXY_ARG}"; \
+    else \
+        unset HTTP_PROXY HTTPS_PROXY ALL_PROXY NO_PROXY http_proxy https_proxy all_proxy no_proxy; \
+    fi && \
     export ISAACLAB_PATH=${ISAACLAB_PATH:-/workspace/isaaclab} && \
-    ${ISAACLAB_PATH}/isaaclab.sh --install"
+    ${ISAACLAB_PATH}/isaaclab.sh --install'
 
 # Install the robot_lab extension into the same Python environment.
-RUN HTTP_PROXY=${CLASH_PROXY_BUILD_URL} \
-    HTTPS_PROXY=${CLASH_PROXY_BUILD_URL} \
-    ALL_PROXY=${CLASH_PROXY_BUILD_URL} \
-    http_proxy=${CLASH_PROXY_BUILD_URL} \
-    https_proxy=${CLASH_PROXY_BUILD_URL} \
-    all_proxy=${CLASH_PROXY_BUILD_URL} \
-    NO_PROXY=${CLASH_NO_PROXY_ARG} \
-    no_proxy=${CLASH_NO_PROXY_ARG} \
-    bash -i -c "source ${HOME}/.bashrc && \
+RUN bash -i -c 'source "${HOME}/.bashrc" && \
+    if [[ -n "${CLASH_PROXY_SCHEME_ARG}" && -n "${CLASH_PROXY_BUILD_HOST_ARG}" && -n "${CLASH_PROXY_PORT_ARG}" ]]; then \
+        export CLASH_PROXY_BUILD_URL="${CLASH_PROXY_SCHEME_ARG}://${CLASH_PROXY_BUILD_HOST_ARG}:${CLASH_PROXY_PORT_ARG}" && \
+        export HTTP_PROXY="${CLASH_PROXY_BUILD_URL}" && \
+        export HTTPS_PROXY="${CLASH_PROXY_BUILD_URL}" && \
+        export ALL_PROXY="${CLASH_PROXY_BUILD_URL}" && \
+        export http_proxy="${CLASH_PROXY_BUILD_URL}" && \
+        export https_proxy="${CLASH_PROXY_BUILD_URL}" && \
+        export all_proxy="${CLASH_PROXY_BUILD_URL}" && \
+        export NO_PROXY="${CLASH_NO_PROXY_ARG}" && \
+        export no_proxy="${CLASH_NO_PROXY_ARG}"; \
+    else \
+        unset HTTP_PROXY HTTPS_PROXY ALL_PROXY NO_PROXY http_proxy https_proxy all_proxy no_proxy; \
+    fi && \
     cd ${DOCKER_ISAACLAB_EXTENSION_TEMPLATE_PATH}/source/robot_lab && \
-    pip install -e ."
+    pip install -e .'
 
 # make working directory as the Isaac Lab directory
 # this is the default directory when the container is run
