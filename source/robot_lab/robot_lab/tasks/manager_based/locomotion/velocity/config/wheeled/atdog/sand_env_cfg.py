@@ -220,7 +220,7 @@ class ATDogDogSandEnvCfg(LocomotionVelocityRoughEnvCfg):
         # 惩罚机身姿态偏离水平（roll/pitch 倾斜角误差）
         self.rewards.flat_orientation_l2.weight = 0
         # 机身高度跟踪惩罚（当前关闭）
-        self.rewards.base_height_l2.weight = -300
+        self.rewards.base_height_l2.weight = -1000
         self.rewards.base_height_l2.params["target_height"] = 0.35
         # 指定用 base 刚体计算该项（避免多 body 统计带来歧义）
         self.rewards.base_height_l2.params["asset_cfg"].body_names = [self.base_link_name]
