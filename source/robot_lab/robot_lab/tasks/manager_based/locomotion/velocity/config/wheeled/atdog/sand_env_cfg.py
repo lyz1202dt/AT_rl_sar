@@ -291,7 +291,7 @@ class ATDogDogSandEnvCfg(LocomotionVelocityRoughEnvCfg):
 
         # Velocity-tracking rewards
         # 线速度追踪主奖励（xy 平面，指数型）
-        self.rewards.track_lin_vel_xy_exp.weight = 50.0
+        self.rewards.track_lin_vel_xy_exp.weight = 70.0
         # 偏航角速度追踪奖励（绕 z 转向）
         self.rewards.track_ang_vel_z_exp.weight = 50.0
 
@@ -315,19 +315,19 @@ class ATDogDogSandEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.feet_slide.params["sensor_cfg"].body_names = [self.foot_link_name]
         self.rewards.feet_slide.params["asset_cfg"].body_names = [self.foot_link_name]
         # 足端绝对高度目标项
-        self.rewards.feet_height.weight = -5
-        self.rewards.feet_height.params["target_height"] = 0.1
+        self.rewards.feet_height.weight = -50
+        self.rewards.feet_height.params["target_height"] = 0.20
         self.rewards.feet_height.params["asset_cfg"].body_names = [self.foot_link_name]
         # 相对机身的足端高度惩罚（body frame）
         self.rewards.feet_height_body.weight = -15
-        self.rewards.feet_height_body.params["target_height"] = -0.25
+        self.rewards.feet_height_body.params["target_height"] = -0.15
         self.rewards.feet_height_body.params["asset_cfg"].body_names = [self.foot_link_name]
         # 步态同步奖励: 鼓励对角腿成对同步（trot 风格）
-        self.rewards.feet_gait.weight = 1.0
+        self.rewards.feet_gait.weight = 2.0
         self.rewards.feet_gait.params["synced_feet_pair_names"] = (("FL_foot", "RR_foot"), ("FR_foot", "RL_foot"))
 
-        self.rewards.feet_air_time_variance.weight = -30.0
-        self.rewards.feet_air_time_variance.params["sensor_cfg"].body_names = [self.foot_link_name]     
+        # self.rewards.feet_air_time_variance.weight = -30.0
+        # self.rewards.feet_air_time_variance.params["sensor_cfg"].body_names = [self.foot_link_name]     
 
         # 机身朝上约束奖励
         self.rewards.upward.weight = 10.0
