@@ -35,6 +35,10 @@ services:
       args:
         - ISAACLAB_BASE_IMAGE_ARG=${ISAACLAB_BASE_IMAGE}
         - DOCKER_ISAACLAB_EXTENSION_TEMPLATE_PATH_ARG=${DOCKER_ISAACLAB_EXTENSION_TEMPLATE_PATH}
+        - BUILD_HTTP_PROXY_ARG=${BUILD_HTTP_PROXY_ARG-}
+        - BUILD_HTTPS_PROXY_ARG=${BUILD_HTTPS_PROXY_ARG-}
+        - BUILD_ALL_PROXY_ARG=${BUILD_ALL_PROXY_ARG-}
+        - BUILD_NO_PROXY_ARG=${BUILD_NO_PROXY_ARG-}
         - CLASH_PROXY_SCHEME_ARG=${CLASH_PROXY_SCHEME_ARG-http}
         # Build-time networking does not share the container's localhost.
         # Use host.docker.internal so the build can reach the host Clash proxy.

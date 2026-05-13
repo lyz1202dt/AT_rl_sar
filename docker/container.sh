@@ -40,6 +40,11 @@ has_command() {
     command -v "$1" >/dev/null 2>&1
 }
 
+shell_proxy_configured() {
+    [[ -n "${HTTP_PROXY:-}" || -n "${HTTPS_PROXY:-}" || -n "${ALL_PROXY:-}" || \
+       -n "${http_proxy:-}" || -n "${https_proxy:-}" || -n "${all_proxy:-}" ]]
+}
+
 setup_proxy_env() {
     if [[ "${DISABLE_CLASH_PROXY:-0}" == "1" ]]; then
         echo "[INFO] Clash proxy integration disabled by DISABLE_CLASH_PROXY=1."
@@ -48,14 +53,40 @@ setup_proxy_env() {
         export CLASH_PROXY_RUNTIME_HOST_ARG=""
         export CLASH_PROXY_PORT_ARG=""
         export CLASH_NO_PROXY_ARG=""
+        export BUILD_HTTP_PROXY_ARG=""
+        export BUILD_HTTPS_PROXY_ARG=""
+        export BUILD_ALL_PROXY_ARG=""
+        export BUILD_NO_PROXY_ARG=""
         export HTTP_PROXY=""
         export HTTPS_PROXY=""
         export ALL_PROXY=""
         export NO_PROXY=""
-        export http_proxy="192.168.2.180:7890"
-        export https_proxy="192.168.2.180:7890"
+        export http_proxy=""
+        export https_proxy=""
         export all_proxy=""
         export no_proxy=""
+        return
+    fi
+
+    if shell_proxy_configured; then
+        export HTTP_PROXY="${HTTP_PROXY:-${http_proxy:-}}"
+        export HTTPS_PROXY="${HTTPS_PROXY:-${https_proxy:-${HTTP_PROXY}}}"
+        export ALL_PROXY="${ALL_PROXY:-${all_proxy:-}}"
+        export NO_PROXY="${NO_PROXY:-${no_proxy:-}}"
+        export http_proxy="${http_proxy:-${HTTP_PROXY}}"
+        export https_proxy="${https_proxy:-${HTTPS_PROXY}}"
+        export all_proxy="${all_proxy:-${ALL_PROXY}}"
+        export no_proxy="${no_proxy:-${NO_PROXY}}"
+        export BUILD_HTTP_PROXY_ARG="${HTTP_PROXY}"
+        export BUILD_HTTPS_PROXY_ARG="${HTTPS_PROXY}"
+        export BUILD_ALL_PROXY_ARG="${ALL_PROXY}"
+        export BUILD_NO_PROXY_ARG="${NO_PROXY}"
+        export CLASH_PROXY_SCHEME_ARG=""
+        export CLASH_PROXY_BUILD_HOST_ARG=""
+        export CLASH_PROXY_RUNTIME_HOST_ARG=""
+        export CLASH_PROXY_PORT_ARG=""
+        export CLASH_NO_PROXY_ARG=""
+        echo "[INFO] Using proxy settings from current shell environment."
         return
     fi
 
@@ -64,6 +95,10 @@ setup_proxy_env() {
     export CLASH_PROXY_RUNTIME_HOST_ARG="${CLASH_PROXY_RUNTIME_HOST_ARG:-${CLASH_PROXY_RUNTIME_HOST:-127.0.0.1}}"
     export CLASH_PROXY_PORT_ARG="${CLASH_PROXY_PORT_ARG:-${CLASH_PROXY_PORT:-7890}}"
     export CLASH_NO_PROXY_ARG="${CLASH_NO_PROXY_ARG:-${CLASH_NO_PROXY:-localhost,127.0.0.1,::1,host.docker.internal}}"
+    export BUILD_HTTP_PROXY_ARG=""
+    export BUILD_HTTPS_PROXY_ARG=""
+    export BUILD_ALL_PROXY_ARG=""
+    export BUILD_NO_PROXY_ARG=""
 
     local runtime_proxy_url="${CLASH_PROXY_SCHEME_ARG}://${CLASH_PROXY_RUNTIME_HOST_ARG}:${CLASH_PROXY_PORT_ARG}"
 
@@ -184,6 +219,8 @@ cmd_build() {
     echo "[INFO] Building ${SERVICE_NAME} image..."
     if [[ "${DISABLE_CLASH_PROXY:-0}" == "1" ]]; then
         echo "[INFO] Build proxy: disabled"
+    elif shell_proxy_configured; then
+        echo "[INFO] Build proxy: ${HTTP_PROXY:-${HTTPS_PROXY:-${ALL_PROXY:-configured in shell}}}"
     else
         echo "[INFO] Build proxy: ${CLASH_PROXY_SCHEME_ARG}://${CLASH_PROXY_BUILD_HOST_ARG}:${CLASH_PROXY_PORT_ARG}"
     fi
@@ -201,6 +238,8 @@ cmd_start() {
     fi
     if [[ "${DISABLE_CLASH_PROXY:-0}" == "1" ]]; then
         echo "[INFO] Runtime proxy: disabled"
+    elif shell_proxy_configured; then
+        echo "[INFO] Runtime proxy: ${HTTP_PROXY:-${HTTPS_PROXY:-${ALL_PROXY:-configured in shell}}}"
     else
         echo "[INFO] Runtime proxy: ${HTTP_PROXY}"
     fi

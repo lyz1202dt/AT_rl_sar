@@ -1,6 +1,10 @@
 # syntax=docker/dockerfile:1.4
 
 ARG ISAACLAB_BASE_IMAGE_ARG
+ARG BUILD_HTTP_PROXY_ARG
+ARG BUILD_HTTPS_PROXY_ARG
+ARG BUILD_ALL_PROXY_ARG
+ARG BUILD_NO_PROXY_ARG
 ARG CLASH_PROXY_SCHEME_ARG=http
 ARG CLASH_PROXY_BUILD_HOST_ARG=127.0.0.1
 ARG CLASH_PROXY_RUNTIME_HOST_ARG=127.0.0.1
@@ -11,6 +15,10 @@ ARG CLASH_NO_PROXY_ARG=localhost,127.0.0.1,::1
 FROM ${ISAACLAB_BASE_IMAGE_ARG} AS base
 
 ARG DOCKER_ISAACLAB_EXTENSION_TEMPLATE_PATH_ARG
+ARG BUILD_HTTP_PROXY_ARG
+ARG BUILD_HTTPS_PROXY_ARG
+ARG BUILD_ALL_PROXY_ARG
+ARG BUILD_NO_PROXY_ARG
 ARG CLASH_PROXY_SCHEME_ARG
 ARG CLASH_PROXY_BUILD_HOST_ARG
 ARG CLASH_PROXY_RUNTIME_HOST_ARG
@@ -18,6 +26,10 @@ ARG CLASH_PROXY_PORT_ARG
 ARG CLASH_NO_PROXY_ARG
 
 ENV DOCKER_ISAACLAB_EXTENSION_TEMPLATE_PATH=${DOCKER_ISAACLAB_EXTENSION_TEMPLATE_PATH_ARG}
+ENV BUILD_HTTP_PROXY_ARG=${BUILD_HTTP_PROXY_ARG}
+ENV BUILD_HTTPS_PROXY_ARG=${BUILD_HTTPS_PROXY_ARG}
+ENV BUILD_ALL_PROXY_ARG=${BUILD_ALL_PROXY_ARG}
+ENV BUILD_NO_PROXY_ARG=${BUILD_NO_PROXY_ARG}
 ENV CLASH_PROXY_SCHEME_ARG=${CLASH_PROXY_SCHEME_ARG}
 ENV CLASH_PROXY_BUILD_HOST_ARG=${CLASH_PROXY_BUILD_HOST_ARG}
 ENV CLASH_PROXY_RUNTIME_HOST_ARG=${CLASH_PROXY_RUNTIME_HOST_ARG}
@@ -33,7 +45,16 @@ COPY ../ ${DOCKER_ISAACLAB_EXTENSION_TEMPLATE_PATH}
 # Some custom/base images only provide aliases to Isaac Sim's python and do not pre-install the
 # editable Isaac Lab packages, which causes `ModuleNotFoundError: No module named 'isaaclab'`.
 RUN bash -i -c 'source "${HOME}/.bashrc" && \
-    if [[ -n "${CLASH_PROXY_SCHEME_ARG}" && -n "${CLASH_PROXY_BUILD_HOST_ARG}" && -n "${CLASH_PROXY_PORT_ARG}" ]]; then \
+    if [[ -n "${BUILD_HTTP_PROXY_ARG}" || -n "${BUILD_HTTPS_PROXY_ARG}" || -n "${BUILD_ALL_PROXY_ARG}" ]]; then \
+        export HTTP_PROXY="${BUILD_HTTP_PROXY_ARG}" && \
+        export HTTPS_PROXY="${BUILD_HTTPS_PROXY_ARG:-${BUILD_HTTP_PROXY_ARG}}" && \
+        export ALL_PROXY="${BUILD_ALL_PROXY_ARG}" && \
+        export http_proxy="${HTTP_PROXY}" && \
+        export https_proxy="${HTTPS_PROXY}" && \
+        export all_proxy="${ALL_PROXY}" && \
+        export NO_PROXY="${BUILD_NO_PROXY_ARG}" && \
+        export no_proxy="${BUILD_NO_PROXY_ARG}"; \
+    elif [[ -n "${CLASH_PROXY_SCHEME_ARG}" && -n "${CLASH_PROXY_BUILD_HOST_ARG}" && -n "${CLASH_PROXY_PORT_ARG}" ]]; then \
         export CLASH_PROXY_BUILD_URL="${CLASH_PROXY_SCHEME_ARG}://${CLASH_PROXY_BUILD_HOST_ARG}:${CLASH_PROXY_PORT_ARG}" && \
         export HTTP_PROXY="${CLASH_PROXY_BUILD_URL}" && \
         export HTTPS_PROXY="${CLASH_PROXY_BUILD_URL}" && \
@@ -51,7 +72,16 @@ RUN bash -i -c 'source "${HOME}/.bashrc" && \
 
 # Install the robot_lab extension into the same Python environment.
 RUN bash -i -c 'source "${HOME}/.bashrc" && \
-    if [[ -n "${CLASH_PROXY_SCHEME_ARG}" && -n "${CLASH_PROXY_BUILD_HOST_ARG}" && -n "${CLASH_PROXY_PORT_ARG}" ]]; then \
+    if [[ -n "${BUILD_HTTP_PROXY_ARG}" || -n "${BUILD_HTTPS_PROXY_ARG}" || -n "${BUILD_ALL_PROXY_ARG}" ]]; then \
+        export HTTP_PROXY="${BUILD_HTTP_PROXY_ARG}" && \
+        export HTTPS_PROXY="${BUILD_HTTPS_PROXY_ARG:-${BUILD_HTTP_PROXY_ARG}}" && \
+        export ALL_PROXY="${BUILD_ALL_PROXY_ARG}" && \
+        export http_proxy="${HTTP_PROXY}" && \
+        export https_proxy="${HTTPS_PROXY}" && \
+        export all_proxy="${ALL_PROXY}" && \
+        export NO_PROXY="${BUILD_NO_PROXY_ARG}" && \
+        export no_proxy="${BUILD_NO_PROXY_ARG}"; \
+    elif [[ -n "${CLASH_PROXY_SCHEME_ARG}" && -n "${CLASH_PROXY_BUILD_HOST_ARG}" && -n "${CLASH_PROXY_PORT_ARG}" ]]; then \
         export CLASH_PROXY_BUILD_URL="${CLASH_PROXY_SCHEME_ARG}://${CLASH_PROXY_BUILD_HOST_ARG}:${CLASH_PROXY_PORT_ARG}" && \
         export HTTP_PROXY="${CLASH_PROXY_BUILD_URL}" && \
         export HTTPS_PROXY="${CLASH_PROXY_BUILD_URL}" && \
