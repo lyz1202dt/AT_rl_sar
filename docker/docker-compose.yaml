@@ -14,14 +14,6 @@ x-default-robot-lab-environment: &default-robot-lab-environment
   - all_proxy=${all_proxy-}
   - no_proxy=${no_proxy-}
 
-x-default-robot-lab-deploy: &default-robot-lab-deploy
-  resources:
-    reservations:
-      devices:
-        - driver: nvidia
-          count: all
-          capabilities: [ gpu ]
-
 services:
   robot-lab:
     env_file: .env.base
@@ -56,7 +48,12 @@ services:
       - "host.docker.internal:host-gateway"
     network_mode: host
     environment: *default-robot-lab-environment
-    deploy: *default-robot-lab-deploy
+    # Request all GPUs using Docker's native GPU flag semantics.
+    # This aligns with `docker run --gpus all`, which is the path validated by
+    # NVIDIA Container Toolkit and is more broadly compatible than the
+    # `deploy.resources.reservations.devices` syntax across Docker/Compose
+    # combinations.
+    gpus: all
     # This is the entrypoint for the container
     entrypoint: bash
     stdin_open: true
