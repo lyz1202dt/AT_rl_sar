@@ -13,6 +13,7 @@ SERVICE_NAME="robot-lab"
 CONTAINER_NAME="robot-lab"
 TMP_DIR="${SCRIPT_DIR}/.tmp"
 X11_OVERRIDE_FILE="${TMP_DIR}/docker-compose.x11.yaml"
+GPU_OVERRIDE_FILE="${TMP_DIR}/docker-compose.gpu.yaml"
 
 mkdir -p "${TMP_DIR}"
 
@@ -38,6 +39,30 @@ EOF
 
 has_command() {
     command -v "$1" >/dev/null 2>&1
+}
+
+host_has_nvidia_gpu() {
+    [[ -c /dev/nvidiactl || -c /dev/nvidia0 || -d /proc/driver/nvidia/gpus ]] || return 1
+    has_command nvidia-smi || return 1
+    nvidia-smi >/dev/null 2>&1
+}
+
+gpu_mode() {
+    if [[ "${DISABLE_GPU:-0}" == "1" ]]; then
+        echo "disabled"
+        return
+    fi
+
+    if [[ "${FORCE_GPU:-0}" == "1" ]]; then
+        echo "forced"
+        return
+    fi
+
+    if host_has_nvidia_gpu; then
+        echo "enabled"
+    else
+        echo "disabled"
+    fi
 }
 
 shell_proxy_configured() {
@@ -193,6 +218,15 @@ EOF
     fi
 }
 
+write_gpu_override() {
+    cat > "${GPU_OVERRIDE_FILE}" <<EOF
+services:
+  ${SERVICE_NAME}:
+    devices:
+      - "nvidia.com/gpu=all"
+EOF
+}
+
 enable_x11_access() {
     if has_command xhost; then
         xhost +SI:localuser:root >/dev/null 2>&1 || xhost +local:root >/dev/null 2>&1 || true
@@ -201,6 +235,25 @@ enable_x11_access() {
 
 compose_args() {
     local args=("--file" "${COMPOSE_FILE}" "--env-file" "${ENV_FILE}")
+    local resolved_gpu_mode
+
+    resolved_gpu_mode="$(gpu_mode)"
+    if [[ "${resolved_gpu_mode}" == "forced" ]]; then
+        echo "[INFO] GPU support forced on by FORCE_GPU=1." >&2
+        write_gpu_override
+        args+=("--file" "${GPU_OVERRIDE_FILE}")
+    elif [[ "${resolved_gpu_mode}" == "enabled" ]]; then
+        echo "[INFO] NVIDIA GPU detected on host. Enabling container GPU access." >&2
+        write_gpu_override
+        args+=("--file" "${GPU_OVERRIDE_FILE}")
+    else
+        if [[ "${DISABLE_GPU:-0}" == "1" ]]; then
+            echo "[INFO] GPU support disabled by DISABLE_GPU=1." >&2
+        else
+            echo "[INFO] NVIDIA GPU not detected on host. Starting container without GPU access." >&2
+        fi
+    fi
+
     if [[ -n "${DISPLAY:-}" && -d /tmp/.X11-unix ]]; then
         write_x11_override
         args+=("--file" "${X11_OVERRIDE_FILE}")

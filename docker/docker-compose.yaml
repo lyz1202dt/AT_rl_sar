@@ -48,12 +48,6 @@ services:
       - "host.docker.internal:host-gateway"
     network_mode: host
     environment: *default-robot-lab-environment
-    # Request all GPUs using Docker's native GPU flag semantics.
-    # This aligns with `docker run --gpus all`, which is the path validated by
-    # NVIDIA Container Toolkit and is more broadly compatible than the
-    # `deploy.resources.reservations.devices` syntax across Docker/Compose
-    # combinations.
-    gpus: all
     # This is the entrypoint for the container
     entrypoint: bash
     stdin_open: true
