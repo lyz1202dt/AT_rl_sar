@@ -26,7 +26,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dog/meshes/base_link.STL" />
+          filename="package://dog_arm/meshes/base_link.STL" />
       </geometry>
       <material
         name="">
@@ -40,7 +40,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dog/meshes/base_link.STL" />
+          filename="package://dog_arm/meshes/base_link.STL" />
       </geometry>
     </collision>
   </link>
@@ -66,7 +66,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dog/meshes/left_front1.STL" />
+          filename="package://dog_arm/meshes/left_front1.STL" />
       </geometry>
       <material
         name="">
@@ -80,7 +80,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dog/meshes/left_front1.STL" />
+          filename="package://dog_arm/meshes/left_front1.STL" />
       </geometry>
     </collision>
   </link>
@@ -124,7 +124,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dog/meshes/left_front2.STL" />
+          filename="package://dog_arm/meshes/left_front2.STL" />
       </geometry>
       <material
         name="">
@@ -138,7 +138,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dog/meshes/left_front2.STL" />
+          filename="package://dog_arm/meshes/left_front2.STL" />
       </geometry>
     </collision>
   </link>
@@ -182,7 +182,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dog/meshes/left_front3.STL" />
+          filename="package://dog_arm/meshes/left_front3.STL" />
       </geometry>
       <material
         name="">
@@ -196,7 +196,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dog/meshes/left_front3.STL" />
+          filename="package://dog_arm/meshes/left_front3.STL" />
       </geometry>
     </collision>
   </link>
@@ -240,7 +240,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dog/meshes/left_front4.STL" />
+          filename="package://dog_arm/meshes/left_front4.STL" />
       </geometry>
       <material
         name="">
@@ -254,7 +254,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dog/meshes/left_front4.STL" />
+          filename="package://dog_arm/meshes/left_front4.STL" />
       </geometry>
     </collision>
   </link>
@@ -293,7 +293,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dog/meshes/right_front1.STL" />
+          filename="package://dog_arm/meshes/right_front1.STL" />
       </geometry>
       <material
         name="">
@@ -307,7 +307,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dog/meshes/right_front1.STL" />
+          filename="package://dog_arm/meshes/right_front1.STL" />
       </geometry>
     </collision>
   </link>
@@ -351,7 +351,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dog/meshes/right_front2.STL" />
+          filename="package://dog_arm/meshes/right_front2.STL" />
       </geometry>
       <material
         name="">
@@ -365,7 +365,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dog/meshes/right_front2.STL" />
+          filename="package://dog_arm/meshes/right_front2.STL" />
       </geometry>
     </collision>
   </link>
@@ -409,7 +409,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dog/meshes/right_front3.STL" />
+          filename="package://dog_arm/meshes/right_front3.STL" />
       </geometry>
       <material
         name="">
@@ -423,7 +423,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dog/meshes/right_front3.STL" />
+          filename="package://dog_arm/meshes/right_front3.STL" />
       </geometry>
     </collision>
   </link>
@@ -467,7 +467,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dog/meshes/right_front4.STL" />
+          filename="package://dog_arm/meshes/right_front4.STL" />
       </geometry>
       <material
         name="">
@@ -481,7 +481,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dog/meshes/right_front4.STL" />
+          filename="package://dog_arm/meshes/right_front4.STL" />
       </geometry>
     </collision>
   </link>
@@ -520,7 +520,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dog/meshes/package://dog/meshes/left_behind1.STL" />
+          filename="package://dog_arm/meshes/package://dog/meshes/left_behind1.STL" />
       </geometry>
       <material
         name="">
@@ -534,7 +534,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dog/meshes/left_behind1.STL" />
+          filename="package://dog_arm/meshes/left_behind1.STL" />
       </geometry>
     </collision>
   </link>
@@ -578,7 +578,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dog/meshes/left_behind2.STL" />
+          filename="package://dog_arm/meshes/left_behind2.STL" />
       </geometry>
       <material
         name="">
@@ -592,7 +592,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dog/meshes/left_behind2.STL" />
+          filename="package://dog_arm/meshes/left_behind2.STL" />
       </geometry>
     </collision>
   </link>
@@ -636,7 +636,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dog/meshes/left_behind3.STL" />
+          filename="package://dog_arm/meshes/left_behind3.STL" />
       </geometry>
       <material
         name="">
@@ -650,7 +650,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dog/meshes/left_behind3.STL" />
+          filename="package://dog_arm/meshes/left_behind3.STL" />
       </geometry>
     </collision>
   </link>
@@ -694,7 +694,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dog/meshes/left_behind4.STL" />
+          filename="package://dog_arm/meshes/left_behind4.STL" />
       </geometry>
       <material
         name="">
@@ -708,7 +708,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dog/meshes/left_behind4.STL" />
+          filename="package://dog_arm/meshes/left_behind4.STL" />
       </geometry>
     </collision>
   </link>
@@ -747,7 +747,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dog/meshes/right_behind1.STL" />
+          filename="package://dog_arm/meshes/right_behind1.STL" />
       </geometry>
       <material
         name="">
@@ -761,7 +761,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dog/meshes/right_behind1.STL" />
+          filename="package://dog_arm/meshes/right_behind1.STL" />
       </geometry>
     </collision>
   </link>
@@ -805,7 +805,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dog/meshes/right_behind2.STL" />
+          filename="package://dog_arm/meshes/right_behind2.STL" />
       </geometry>
       <material
         name="">
@@ -819,7 +819,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dog/meshes/right_behind2.STL" />
+          filename="package://dog_arm/meshes/right_behind2.STL" />
       </geometry>
     </collision>
   </link>
@@ -863,7 +863,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dog/meshes/right_behind3.STL" />
+          filename="package://dog_arm/meshes/right_behind3.STL" />
       </geometry>
       <material
         name="">
@@ -877,7 +877,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dog/meshes/right_behind3.STL" />
+          filename="package://dog_arm/meshes/right_behind3.STL" />
       </geometry>
     </collision>
   </link>
@@ -921,7 +921,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dog/meshes/right_behind4.STL" />
+          filename="package://dog_arm/meshes/right_behind4.STL" />
       </geometry>
       <material
         name="">
@@ -935,7 +935,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dog/meshes/right_behind4.STL" />
+          filename="package://dog_arm/meshes/right_behind4.STL" />
       </geometry>
     </collision>
   </link>

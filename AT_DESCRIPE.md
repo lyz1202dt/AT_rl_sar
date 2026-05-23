@@ -16,11 +16,16 @@ cd /workspace/isaaclab_extension_template
   --task=RobotLab-Isaac-Velocity-Flat-ATDog-Dog-v0 \
   --num_envs=8000 \
   --max_iterations=1000\
+  --headless 
+
   --resume \
   --load_run=2026-05-06_13-31-42 \
   --checkpoint=model_3098.pt \
-  --headless 
-
+/workspace/isaaclab/isaaclab.sh -p /workspace/isaaclab_extension_template/scripts/reinforcement_learning/rsl_rl/train.py \
+  --task=RobotLab-Isaac-Velocity-Flat-ATDog-Dog_Arm-v0 \
+  --num_envs=20000 \
+  --max_iterations=500\
+  --headless
 
 
 ```
