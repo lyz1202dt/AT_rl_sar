@@ -37,9 +37,10 @@ cd /workspace/isaaclab_extension_template
 ```bash
 cd /workspace/isaaclab_extension_template
 /workspace/isaaclab/isaaclab.sh -p scripts/reinforcement_learning/rsl_rl/play.py \
-  --task=RobotLab-Isaac-Velocity-Flat-ATDog-Dog-v0 \
-  --checkpoint=/workspace/isaaclab_extension_template/logs/rsl_rl/atdog_dog_flat/2026-05-10_13-02-45/model_4097.pt \
-  --num_envs=10
+  --task=RobotLab-Isaac-Velocity-Flat-ATDog-Dog_Arm-v0 \
+  --checkpoint=/workspace/isaaclab_extension_template/logs/rsl_rl/atdog_arm_flat/2026-05-23_09-47-25/model_499.pt \
+  --num_envs=1\
+  --headless
 
 
 /workspace/isaaclab/isaaclab.sh -p scripts/reinforcement_learning/rsl_rl/play.py \

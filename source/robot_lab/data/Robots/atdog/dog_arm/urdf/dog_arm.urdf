@@ -496,7 +496,7 @@
     <child
       link="FR_foot" />
     <axis
-      xyz="0 0 -1" />
+      xyz="0 0 1" />
   </joint>
   <link
     name="RL_hip">
@@ -950,6 +950,6 @@
     <child
       link="RR_foot" />
     <axis
-      xyz="0 0 -1" />
+      xyz="0 0 1" />
   </joint>
 </robot>
