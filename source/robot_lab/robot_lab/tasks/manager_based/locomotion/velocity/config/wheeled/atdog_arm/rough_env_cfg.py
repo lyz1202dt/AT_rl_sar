@@ -1,0 +1,315 @@
+# Copyright (c) 2024-2025 Ziqi Fan
+# SPDX-License-Identifier: Apache-2.0
+
+from isaaclab.managers import RewardTermCfg as RewTerm
+from isaaclab.managers import SceneEntityCfg
+from isaaclab.utils import configclass
+import isaaclab.terrains as terrain_gen
+
+import robot_lab.tasks.manager_based.locomotion.velocity.mdp as mdp
+from robot_lab.tasks.manager_based.locomotion.velocity.velocity_env_cfg import (
+    ActionsCfg,
+    LocomotionVelocityRoughEnvCfg,
+    RewardsCfg,
+)
+
+##
+# Pre-defined configs
+##
+from robot_lab.assets.atdog import AT_DOG_ARM_CFG  # isort: skip
+
+
+@configclass
+class ATDogArmActionsCfg(ActionsCfg):
+    """Action specifications for the MDP."""
+
+    joint_pos = mdp.JointPositionActionCfg(
+        asset_name="robot", joint_names=[""], scale=0.25, use_default_offset=True, clip=None, preserve_order=True
+    )
+
+    joint_vel = mdp.JointVelocityActionCfg(
+        asset_name="robot", joint_names=[""], scale=5.0, use_default_offset=True, clip=None, preserve_order=True
+    )
+
+
+@configclass
+class ATDogArmRewardsCfg(RewardsCfg):
+    """Reward terms for the MDP."""
+
+    joint_vel_wheel_l2 = RewTerm(
+        func=mdp.joint_vel_l2, weight=0.0, params={"asset_cfg": SceneEntityCfg("robot", joint_names="")}
+    )
+
+    joint_acc_wheel_l2 = RewTerm(
+        func=mdp.joint_acc_l2, weight=0.0, params={"asset_cfg": SceneEntityCfg("robot", joint_names="")}
+    )
+
+    joint_torques_wheel_l2 = RewTerm(
+        func=mdp.joint_torques_l2, weight=0.0, params={"asset_cfg": SceneEntityCfg("robot", joint_names="")}
+    )
+
+
+@configclass
+class ATDogArmRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
+    actions: ATDogArmActionsCfg = ATDogArmActionsCfg()
+    rewards: ATDogArmRewardsCfg = ATDogArmRewardsCfg()
+
+    # 机身主刚体名称，用于:
+    # 1) 传感器挂载（高度扫描器）
+    # 2) 质量/质心/外力随机化时筛选 body
+    # 3) 与 base 相关奖励项的 body 指定
+    base_link_name = "base_link"
+    # 轮足末端 body，用于接触相关奖励/惩罚筛选
+    foot_link_name = ".*_foot"
+
+    # fmt: off
+    # 腿部关节顺序与动作/观测向量顺序保持一致，避免策略输入输出错位
+    leg_joint_names = [
+        "FR_hip_joint", "FR_thigh_joint", "FR_calf_joint",
+        "FL_hip_joint", "FL_thigh_joint", "FL_calf_joint",
+        "RR_hip_joint", "RR_thigh_joint", "RR_calf_joint",
+        "RL_hip_joint", "RL_thigh_joint", "RL_calf_joint",
+    ]
+    # 轮关节集合（速度控制）
+    wheel_joint_names = [
+        "FR_foot_joint", "FL_foot_joint", "RR_foot_joint", "RL_foot_joint",
+    ]
+    # 全关节集合（观测使用）
+    joint_names = leg_joint_names + wheel_joint_names
+    # fmt: on
+
+    def __post_init__(self):
+        # 先继承父类默认配置，再按 ATDog 轮式粗糙地形任务覆写
+        super().__post_init__()
+
+        # ------------------------------Scene 场景与传感器------------------------------
+        # 指定机器人资产，并放置到每个并行环境的 Robot prim 下
+        self.scene.robot = AT_DOG_ARM_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
+        # 将高度扫描器挂到机身 base 上，保证地形感知参考系一致
+        self.scene.height_scanner.prim_path = "{ENV_REGEX_NS}/Robot/" + self.base_link_name
+        self.scene.height_scanner_base.prim_path = "{ENV_REGEX_NS}/Robot/" + self.base_link_name
+
+        # ------------------------------Observations------------------------------
+        # 对应 dog2 配置思路:
+        # - 仍保留 joint_pos/joint_vel 主观测
+        # - 轮式任务中将 joint_pos 替换为不含轮关节的位置观测，避免轮转角累积带来的输入漂移
+        self.observations.policy.joint_pos.func = mdp.joint_pos_rel_without_wheel
+        self.observations.policy.joint_pos.params["wheel_asset_cfg"] = SceneEntityCfg(
+            "robot", joint_names=self.wheel_joint_names
+        )
+        self.observations.critic.joint_pos.func = mdp.joint_pos_rel_without_wheel
+        self.observations.critic.joint_pos.params["wheel_asset_cfg"] = SceneEntityCfg(
+            "robot", joint_names=self.wheel_joint_names
+        )
+        # 各观测分量缩放系数:
+        # - scale 越大，对应量在策略输入中的数值幅度越大
+        # - 需结合网络归一化习惯，避免某一类信号过强/过弱
+        self.observations.policy.base_lin_vel.scale = 2.0
+        self.observations.policy.base_ang_vel.scale = 0.25
+        self.observations.policy.joint_pos.scale = 1.0
+        self.observations.policy.joint_vel.scale = 0.05
+        # 关闭策略侧 base_lin_vel 与 height_scan 观测（即不输入给 actor）
+        self.observations.policy.base_lin_vel = None
+        self.observations.policy.height_scan = None
+        # 对应 dog2: 显式关闭 critic 侧高度扫描观测，便于保持输入维度一致
+        self.observations.critic.height_scan = None
+        # 明确 joint_pos/joint_vel 仅采集 joint_names 中定义的关节
+        self.observations.policy.joint_pos.params["asset_cfg"].joint_names = self.joint_names
+        self.observations.policy.joint_vel.params["asset_cfg"].joint_names = self.joint_names
+
+        # ------------------------------Actions------------------------------
+        # 动作缩放:
+        # - 髋关节幅度更小(0.125)，减少横摆过猛导致的不稳定
+        # - 其余腿关节幅度 0.25，保留足够摆动能力
+        self.actions.joint_pos.scale = {".*_hip_joint": 0.125, "^(?!.*_hip_joint).*": 0.25}
+        # 轮关节速度动作缩放
+        self.actions.joint_vel.scale = 5.0
+        # 动作裁剪区间（非常宽），主要作为安全兜底防止异常值爆炸
+        self.actions.joint_pos.clip = {".*": (-100.0, 100.0)}
+        self.actions.joint_vel.clip = {".*": (-100.0, 100.0)}
+        # 腿关节走位置控制，轮关节走速度控制
+        self.actions.joint_pos.joint_names = self.leg_joint_names
+        self.actions.joint_vel.joint_names = self.wheel_joint_names
+
+        # ------------------------------Events------------------------------
+        # reset 时随机化机身位姿与速度:
+        # - pose_range: 初始位置/姿态扰动范围
+        # - velocity_range: 初始线速度/角速度扰动范围
+        # 目的: 提升鲁棒性，减少对单一起始状态过拟合
+        self.events.randomize_reset_base.params = {
+            "pose_range": {
+                "x": (-0.03, 0.03),
+                "y": (-0.03, 0.03),
+                "z": (0.0, 0.02),
+                "roll": (-0.8, 0.8),
+                "pitch": (-0.8, 0.8),
+                "yaw": (-0.1, 0.1),
+            },
+            "velocity_range": {
+                "x": (0.0, 0.0),
+                "y": (0.0, 0.0),
+                "z": (0.0, 0.0),
+                "roll": (0.0, 0.0),
+                "pitch": (0.0, 0.0),
+                "yaw": (0.0, 0.0),
+            },
+        }
+
+        # 仅随机化 base 的质量
+        self.events.randomize_rigid_body_mass_base.params["asset_cfg"].body_names = [self.base_link_name]
+        # 随机化除 base 外其他刚体质量（负向前瞻正则: 不匹配 base）
+        self.events.randomize_rigid_body_mass_others.params["asset_cfg"].body_names = [
+            f"^(?!.*{self.base_link_name}).*"
+        ]
+        # 仅随机化 base 质心位置
+        self.events.randomize_com_positions.params["asset_cfg"].body_names = [self.base_link_name]
+        # 外力/外力矩扰动施加到 base，模拟推搡/干扰
+        self.events.randomize_apply_external_force_torque.params["asset_cfg"].body_names = [self.base_link_name]
+
+        # ------------------------------Rewards------------------------------
+        # 约定:
+        # - 正权重: 鼓励该行为（reward）-> 底层返回正值，策略争取高分
+        # - 负权重: 惩罚该行为（penalty）-> 底层返回误差/能耗，策略避免扣分
+        # - 权重为0: 本项不参与训练（后面可统一 disable）
+
+        # General
+        # 终止奖励（通常在 episode 提前结束时给固定惩罚/奖励）。
+        # 这里设为 0，表示不通过该项直接影响学习，终止影响主要体现在回合截断本身。
+        self.rewards.is_terminated.weight = 0
+
+        # Root penalties
+        # 惩罚机身 z 方向线速度，抑制“跳跃/颠簸”
+        self.rewards.lin_vel_z_l2.weight = -10.0
+        # 惩罚机身 x/y 角速度（roll/pitch 旋转速度），降低侧翻和点头抖动
+        self.rewards.ang_vel_xy_l2.weight = -0.1
+        # 惩罚机身姿态偏离水平（roll/pitch 倾斜角误差）
+        self.rewards.flat_orientation_l2.weight = 0
+        # 机身高度跟踪惩罚（当前关闭）
+        self.rewards.base_height_l2.weight = -400
+        self.rewards.base_height_l2.params["target_height"] = 0.35
+        # 指定用 base 刚体计算该项（避免多 body 统计带来歧义）
+        self.rewards.base_height_l2.params["asset_cfg"].body_names = [self.base_link_name]
+        # 惩罚机身线加速度（平滑机身受力/运动），当前关闭
+        self.rewards.body_lin_acc_l2.weight = 0
+        self.rewards.body_lin_acc_l2.params["asset_cfg"].body_names = [self.base_link_name]
+
+        # Joint penalties
+        # 腿部力矩 L2 惩罚，控制能耗并抑制“暴力驱动”
+        self.rewards.joint_torques_l2.weight = -2.5e-6
+        self.rewards.joint_torques_l2.params["asset_cfg"].joint_names = self.leg_joint_names
+        # 轮部力矩 L2 惩罚（单独项，当前关闭）
+        self.rewards.joint_torques_wheel_l2.weight = -0.4
+        self.rewards.joint_torques_wheel_l2.params["asset_cfg"].joint_names = self.wheel_joint_names
+        # 腿部关节速度 L2 惩罚（当前关闭）
+        self.rewards.joint_vel_l2.weight = 0
+        self.rewards.joint_vel_l2.params["asset_cfg"].joint_names = self.leg_joint_names
+        # 轮部关节速度 L2 惩罚（当前关闭）
+        self.rewards.joint_vel_wheel_l2.weight = -2.5e-2
+        self.rewards.joint_vel_wheel_l2.params["asset_cfg"].joint_names = self.wheel_joint_names
+        # 腿部关节加速度 L2 惩罚，鼓励动作更平滑
+        self.rewards.joint_acc_l2.weight = -2.5e-5
+        self.rewards.joint_acc_l2.params["asset_cfg"].joint_names = self.leg_joint_names
+        # 轮部关节加速度 L2 惩罚
+        self.rewards.joint_acc_wheel_l2.weight = -2.5e-6
+        self.rewards.joint_acc_wheel_l2.params["asset_cfg"].joint_names = self.wheel_joint_names
+        # self.rewards.create_joint_deviation_l1_rewterm("joint_deviation_hip_l1", -0.2, [".*_hip_joint"])
+        # 腿部关节限位惩罚: 接近/触发关节上下限时强惩罚，防止打限位
+        self.rewards.joint_pos_limits.weight = -5.0
+        self.rewards.joint_pos_limits.params["asset_cfg"].joint_names = self.leg_joint_names
+        # 轮关节速度上限惩罚，当前关闭
+        self.rewards.joint_vel_limits.weight = -4.0
+        self.rewards.joint_vel_limits.params["asset_cfg"].joint_names = self.wheel_joint_names
+        # 腿部关节功率惩罚（约束机械功输出），降低发热与电池消耗
+        self.rewards.joint_power.weight = -2e-5
+        self.rewards.joint_power.params["asset_cfg"].joint_names = self.leg_joint_names
+        # 静止命令下站立惩罚项（鼓励“该停就停”）
+        self.rewards.stand_still.weight = -2.0
+        self.rewards.stand_still.params["asset_cfg"].joint_names = self.leg_joint_names
+        # 关节位置正则惩罚（通常相对默认姿态/安全姿态），抑制异常构型
+        self.rewards.joint_pos_penalty.weight = -4.0
+        self.rewards.joint_pos_penalty.params["asset_cfg"].joint_names = self.leg_joint_names
+        # 轮速惩罚（配合接触与命令状态使用），当前关闭
+        self.rewards.wheel_vel_penalty.weight = 0
+        self.rewards.wheel_vel_penalty.params["sensor_cfg"].body_names = [self.foot_link_name]
+        self.rewards.wheel_vel_penalty.params["asset_cfg"].joint_names = self.wheel_joint_names
+        # 轮速方差惩罚: 约束四个轮子速度（绝对值）保持一致，提升轮式运动协调性
+        self.rewards.wheel_vel_variance.weight = -0.2
+        self.rewards.wheel_vel_variance.params["asset_cfg"].joint_names = self.wheel_joint_names
+        # 镜像对称惩罚: 约束对角腿对应关节的位置幅值相近，减少“偏腿”步态
+        self.rewards.joint_mirror.weight = -2.0
+        self.rewards.joint_mirror.params["mirror_joints"] = [
+            ["FR_(hip|thigh|calf).*", "RL_(hip|thigh|calf).*"],
+            ["FL_(hip|thigh|calf).*", "RR_(hip|thigh|calf).*"],
+        ]
+
+        # Action penalties
+        # 动作变化率惩罚，抑制相邻时刻动作突变，提升控制平滑性与可部署性
+        self.rewards.action_rate_l2.weight = -0.7
+
+        # Contact sensor
+        # 非足端 body 接触惩罚（如躯干/大腿触地），鼓励“只让脚接触地面”
+        self.rewards.undesired_contacts.weight = -15.0
+        self.rewards.undesired_contacts.params["sensor_cfg"].body_names = [f"^(?!.*{self.foot_link_name}).*"]
+        # 足端接触力惩罚，避免落脚冲击过大
+        self.rewards.contact_forces.weight = -1.5e-5
+        self.rewards.contact_forces.params["sensor_cfg"].body_names = [self.foot_link_name]
+
+        # Velocity-tracking rewards
+        # 线速度追踪主奖励（xy 平面，指数型）
+        self.rewards.track_lin_vel_xy_exp.weight = 50.0
+        # 偏航角速度追踪奖励（绕 z 转向）
+        self.rewards.track_ang_vel_z_exp.weight = 50.0
+
+        # Others
+        # 足端腾空时间奖励: 鼓励形成明确摆动相，避免拖脚
+        self.rewards.feet_air_time.weight = 80.0
+        # 只在腾空时间超过阈值时开始计入（单位 s），避免“微小离地”刷分
+        self.rewards.feet_air_time.params["threshold"] = 0.35
+        self.rewards.feet_air_time.params["sensor_cfg"].body_names = [self.foot_link_name]
+        # 足端接触统计项（当前关闭）
+        self.rewards.feet_contact.weight = 5.0
+        self.rewards.feet_contact.params["sensor_cfg"].body_names = [self.foot_link_name]
+        # 无速度命令时保持接触（鼓励原地稳定）
+        self.rewards.feet_contact_without_cmd.weight = 0.5
+        self.rewards.feet_contact_without_cmd.params["sensor_cfg"].body_names = [self.foot_link_name]
+        # 绊脚惩罚（当前关闭）
+        self.rewards.feet_stumble.weight = 0
+        self.rewards.feet_stumble.params["sensor_cfg"].body_names = [self.foot_link_name]
+        # 滑足惩罚: 脚着地后相对地面滑移越大，惩罚越大
+        self.rewards.feet_slide.weight = -10.0
+        self.rewards.feet_slide.params["sensor_cfg"].body_names = [self.foot_link_name]
+        self.rewards.feet_slide.params["asset_cfg"].body_names = [self.foot_link_name]
+        # 足端绝对高度目标项
+        self.rewards.feet_height.weight = -70
+        self.rewards.feet_height.params["target_height"] = 0.13
+        self.rewards.feet_height.params["asset_cfg"].body_names = [self.foot_link_name]
+        # 相对机身的足端高度惩罚（body frame）
+        self.rewards.feet_height_body.weight = -15
+        self.rewards.feet_height_body.params["target_height"] = -0.25
+        self.rewards.feet_height_body.params["asset_cfg"].body_names = [self.foot_link_name]
+        # 步态同步奖励: 鼓励对角腿成对同步（trot 风格）
+        self.rewards.feet_gait.weight = 1.0
+        self.rewards.feet_gait.params["synced_feet_pair_names"] = (("FL_foot", "RR_foot"), ("FR_foot", "RL_foot"))
+
+        self.rewards.feet_air_time_variance.weight = -30.0
+        self.rewards.feet_air_time_variance.params["sensor_cfg"].body_names = [self.foot_link_name]     
+
+        # 机身朝上约束奖励
+        self.rewards.upward.weight = 10.0
+
+        # If the weight of rewards is 0, set rewards to None
+        if self.__class__.__name__ == "ATDogArmRoughEnvCfg":
+            self.disable_zero_weight_rewards()
+
+        # ------------------------------Terminations------------------------------
+        # self.terminations.illegal_contact.params["sensor_cfg"].body_names = [self.base_link_name, ".*_hip"]
+        self.terminations.illegal_contact = None
+
+        # ------------------------------Curriculums------------------------------
+        # self.curriculum.command_levels.params["range_multiplier"] = (0.2, 1.0)
+        self.curriculum.command_levels = None
+
+        # ------------------------------Commands------------------------------
+        # self.commands.base_velocity.ranges.lin_vel_x = (-1.5, 1.5)
+        # self.commands.base_velocity.ranges.lin_vel_y = (-1.0, 1.0)
+        # self.commands.base_velocity.ranges.ang_vel_z = (-1.0, 1.0)
