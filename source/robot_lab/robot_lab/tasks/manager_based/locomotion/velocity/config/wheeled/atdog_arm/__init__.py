@@ -10,7 +10,7 @@ from . import agents
 ##
 
 gym.register(
-    id="RobotLab-Isaac-Velocity-Flat-ATDog-Arm-v0",
+    id="RobotLab-Isaac-Velocity-Flat-ATDog-Dog_Arm-v0",
     entry_point="isaaclab.envs:ManagerBasedRLEnv",
     disable_env_checker=True,
     kwargs={

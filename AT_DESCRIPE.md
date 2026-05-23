@@ -1,5 +1,7 @@
 # Robot Lab训练机器人基本流程命令示例（GO2机器人）
 
+RobotLab-Isaac-Velocity-Flat-ATDog-Dog_Arm-v0
+
 ## 创建环境：
 
 ```bash
