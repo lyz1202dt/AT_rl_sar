@@ -104,7 +104,7 @@ class ATDogDogRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         # 各观测分量缩放系数:
         # - scale 越大，对应量在策略输入中的数值幅度越大
         # - 需结合网络归一化习惯，避免某一类信号过强/过弱
-        self.observations.policy.base_lin_vel.scale = 2.0.0
+        self.observations.policy.base_lin_vel.scale = 2.0
         self.observations.policy.base_ang_vel.scale = 0.25
         self.observations.policy.joint_pos.scale = 1.0
         self.observations.policy.joint_vel.scale = 0.05
