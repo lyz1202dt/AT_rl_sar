@@ -21,6 +21,8 @@ cd /workspace/isaaclab_extension_template
   --resume \
   --load_run=2026-05-06_13-31-42 \
   --checkpoint=model_3098.pt \
+
+
 /workspace/isaaclab/isaaclab.sh -p /workspace/isaaclab_extension_template/scripts/reinforcement_learning/rsl_rl/train.py \
   --task=RobotLab-Isaac-Velocity-Flat-ATDog-Dog_Arm-v0 \
   --num_envs=20000 \
@@ -52,3 +54,6 @@ cd /workspace/isaaclab_extension_template
 ```bash
 docker cp robot-lab:/workspace/isaaclab_extension_template/logs/rsl_rl/unitree_go2_flat/2026-04-19_08-25-46/exported/policy.pt  ./exported
 ```
+
+
+

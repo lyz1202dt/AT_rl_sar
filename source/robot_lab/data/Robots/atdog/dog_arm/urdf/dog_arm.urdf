@@ -520,7 +520,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dog_arm/meshes/package://dog/meshes/left_behind1.STL" />
+          filename="package://dog_arm/meshes/left_behind1.STL" />
       </geometry>
       <material
         name="">
