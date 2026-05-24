@@ -253,7 +253,7 @@ class ATDogArmRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         # Others
         # 奖励：鼓励足端具有合适腾空时间，常用于步态节律学习；这里权重为 0，表示当前不启用
         self.rewards.feet_air_time.weight = 20.0
-        self.rewards.feet_air_time.params["threshold"] = 0.1
+        self.rewards.feet_air_time.params["threshold"] = 0.3
         self.rewards.feet_air_time.params["sensor_cfg"].body_names = [self.foot_link_name]
         # 奖励：鼓励足端接触事件本身；这里权重为 0，表示当前不启用
         self.rewards.feet_contact.weight = 0
@@ -270,7 +270,7 @@ class ATDogArmRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.feet_slide.params["asset_cfg"].body_names = [self.foot_link_name]
         # 奖励/惩罚：约束足端绝对高度接近目标高度；这里权重为 0，表示当前不启用抬脚高度约束
         self.rewards.feet_height.weight = -0.07
-        self.rewards.feet_height.params["target_height"] = 0.05
+        self.rewards.feet_height.params["target_height"] = 0.20
         self.rewards.feet_height.params["asset_cfg"].body_names = [self.foot_link_name]
         # 奖励/惩罚：约束足端相对机身的高度关系；这里权重为 0，表示当前不启用
         self.rewards.feet_height_body.weight = 0
