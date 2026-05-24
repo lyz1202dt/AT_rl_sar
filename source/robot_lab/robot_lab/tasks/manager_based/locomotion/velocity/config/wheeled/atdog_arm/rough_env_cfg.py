@@ -226,7 +226,7 @@ class ATDogArmRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.wheel_vel_penalty.params["sensor_cfg"].body_names = [self.foot_link_name]
         self.rewards.wheel_vel_penalty.params["asset_cfg"].joint_names = self.wheel_joint_names
         # 惩罚：约束对角腿动作镜像一致性，减少左右/前后不协调动作
-        self.rewards.joint_mirror.weight = -0.1
+        self.rewards.joint_mirror.weight = -0.05
         self.rewards.joint_mirror.params["mirror_joints"] = [
             ["FR_(hip|thigh|calf).*", "RL_(hip|thigh|calf).*"],
             ["FL_(hip|thigh|calf).*", "RR_(hip|thigh|calf).*"],
@@ -253,7 +253,7 @@ class ATDogArmRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         # Others
         # 奖励：鼓励足端具有合适腾空时间，常用于步态节律学习；这里权重为 0，表示当前不启用
         self.rewards.feet_air_time.weight = 20.0
-        self.rewards.feet_air_time.params["threshold"] = 0.15
+        self.rewards.feet_air_time.params["threshold"] = 0.1
         self.rewards.feet_air_time.params["sensor_cfg"].body_names = [self.foot_link_name]
         # 奖励：鼓励足端接触事件本身；这里权重为 0，表示当前不启用
         self.rewards.feet_contact.weight = 0
@@ -270,14 +270,14 @@ class ATDogArmRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.feet_slide.params["asset_cfg"].body_names = [self.foot_link_name]
         # 奖励/惩罚：约束足端绝对高度接近目标高度；这里权重为 0，表示当前不启用抬脚高度约束
         self.rewards.feet_height.weight = -0.07
-        self.rewards.feet_height.params["target_height"] = 0.08
+        self.rewards.feet_height.params["target_height"] = 0.05
         self.rewards.feet_height.params["asset_cfg"].body_names = [self.foot_link_name]
         # 奖励/惩罚：约束足端相对机身的高度关系；这里权重为 0，表示当前不启用
         self.rewards.feet_height_body.weight = 0
         self.rewards.feet_height_body.params["target_height"] = -0.2
         self.rewards.feet_height_body.params["asset_cfg"].body_names = [self.foot_link_name]
         # 奖励：鼓励形成指定对角同步步态；这里权重为 0，表示当前不显式约束步态型态
-        self.rewards.feet_gait.weight = 7.5
+        self.rewards.feet_gait.weight = 5
         self.rewards.feet_gait.params["synced_feet_pair_names"] = (("FL_foot", "RR_foot"), ("FR_foot", "RL_foot"))
         # 奖励：鼓励机身朝上，维持整体竖直稳定姿态
         self.rewards.upward.weight = 1.0
