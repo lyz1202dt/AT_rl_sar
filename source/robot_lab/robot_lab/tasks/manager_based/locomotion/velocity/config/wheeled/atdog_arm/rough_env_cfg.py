@@ -197,7 +197,7 @@ class ATDogArmRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.joint_vel_l2.weight = 0
         self.rewards.joint_vel_l2.params["asset_cfg"].joint_names = self.leg_joint_names
         # 惩罚：约束轮关节速度；这里权重为 0，表示当前允许轮子自由转速，不额外惩罚
-        self.rewards.joint_vel_wheel_l2.weight = -2.5e-1
+        self.rewards.joint_vel_wheel_l2.weight = -5.0e-2
         self.rewards.joint_vel_wheel_l2.params["asset_cfg"].joint_names = self.wheel_joint_names
         # 惩罚：约束腿部关节加速度，抑制控制突变，提升动作平滑性
         self.rewards.joint_acc_l2.weight = -2.5e-7
