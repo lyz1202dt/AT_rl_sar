@@ -1,5 +1,11 @@
 # Robot Lab训练机器人基本流程命令示例（GO2机器人）
 
+export http_proxy=192.168.2.180:7890
+export https_proxy=192.168.2.180:7890
+export socket_proxy=192.168.2.180:7890
+
+ssh -p 3022  sw@shenweitechnology.com
+
 ## 创建环境：
 
 ```bash
@@ -38,7 +44,7 @@ cd /workspace/isaaclab_extension_template
 cd /workspace/isaaclab_extension_template
 /workspace/isaaclab/isaaclab.sh -p scripts/reinforcement_learning/rsl_rl/play.py \
   --task=RobotLab-Isaac-Velocity-Flat-ATDog-Dog_Arm-v0 \
-  --checkpoint=/workspace/isaaclab_extension_template/logs/rsl_rl/atdog_arm_flat/2026-05-23_11-54-41/model_199.pt \
+  --checkpoint=/workspace/isaaclab_extension_template/logs/rsl_rl/atdog_arm_flat/2026-05-23_14-26-00/model_299.pt \
   --num_envs=1\
   --headless
 
@@ -52,7 +58,9 @@ cd /workspace/isaaclab_extension_template
 
 ## 复制导出的模型到宿主机
 
-scp -P 3022 sw@shenweitechnology.com:/home/sw/code/AT_rl_sar/logs/rsl_rl/atdog_arm_flat/2026-05-23_09-47-25/exported/policy.onnx ~/桌面/
+初始：2026-05-23_14-26-00
+
+scp -P 3022 sw@shenweitechnology.com:/home/sw/code/AT_rl_sar/logs/rsl_rl/atdog_arm_flat/2026-05-23_14-26-00/exported/policy.onnx ~/桌面/
 
 ```bash
 docker cp robot-lab:/workspace/isaaclab_extension_template/logs/rsl_rl/unitree_go2_flat/2026-04-19_08-25-46/exported/policy.pt  ./exported

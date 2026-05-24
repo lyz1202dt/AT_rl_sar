@@ -168,85 +168,118 @@ class ATDogArmRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
 
  # ------------------------------Rewards------------------------------
         # General
+        # 终止项：通常用于 episode 提前结束时施加一次性惩罚；这里权重为 0，表示当前不启用
         self.rewards.is_terminated.weight = 0
 
         # Root penalties
+        # 惩罚：抑制机身 z 方向线速度，减少上下跳动，鼓励更平稳贴地运动
         self.rewards.lin_vel_z_l2.weight = -2.0
+        # 惩罚：抑制机身 roll/pitch 角速度，减少侧翻和前后晃动
         self.rewards.ang_vel_xy_l2.weight = -0.05
+        # 惩罚：约束机身姿态接近水平；这里权重为 0，表示当前不直接约束横滚/俯仰姿态
         self.rewards.flat_orientation_l2.weight = 0
+        # 惩罚：约束机身高度接近目标高度；这里权重为 0，表示当前不启用高度误差项
         self.rewards.base_height_l2.weight = 0
         self.rewards.base_height_l2.params["target_height"] = 0.40
         self.rewards.base_height_l2.params["asset_cfg"].body_names = [self.base_link_name]
+        # 惩罚：抑制机身线加速度，减少机身抖动和冲击；这里权重为 0，表示当前不启用
         self.rewards.body_lin_acc_l2.weight = 0
         self.rewards.body_lin_acc_l2.params["asset_cfg"].body_names = [self.base_link_name]
 
         # Joint penalties
+        # 惩罚：约束腿部输出力矩，降低能耗并减少过猛驱动
         self.rewards.joint_torques_l2.weight = -2.5e-5
         self.rewards.joint_torques_l2.params["asset_cfg"].joint_names = self.leg_joint_names
-        self.rewards.joint_torques_wheel_l2.weight = 0
+        # 惩罚：约束轮关节输出力矩；这里权重为 0，表示当前不惩罚轮力矩
+        self.rewards.joint_torques_wheel_l2.weight = -2.5e-2
         self.rewards.joint_torques_wheel_l2.params["asset_cfg"].joint_names = self.wheel_joint_names
+        # 惩罚：约束腿部关节速度，避免动作过快；这里权重为 0，表示当前不启用
         self.rewards.joint_vel_l2.weight = 0
         self.rewards.joint_vel_l2.params["asset_cfg"].joint_names = self.leg_joint_names
+        # 惩罚：约束轮关节速度；这里权重为 0，表示当前允许轮子自由转速，不额外惩罚
         self.rewards.joint_vel_wheel_l2.weight = 0
         self.rewards.joint_vel_wheel_l2.params["asset_cfg"].joint_names = self.wheel_joint_names
+        # 惩罚：约束腿部关节加速度，抑制控制突变，提升动作平滑性
         self.rewards.joint_acc_l2.weight = -2.5e-7
         self.rewards.joint_acc_l2.params["asset_cfg"].joint_names = self.leg_joint_names
+        # 惩罚：约束轮关节加速度，减少轮速突变；权重较小，主要做轻微平滑正则
         self.rewards.joint_acc_wheel_l2.weight = -2.5e-9
         self.rewards.joint_acc_wheel_l2.params["asset_cfg"].joint_names = self.wheel_joint_names
         # self.rewards.create_joint_deviation_l1_rewterm("joint_deviation_hip_l1", -0.2, [".*_hip_joint"])
+        # 惩罚：腿部关节接近位置极限时扣分，避免打到关节边界
         self.rewards.joint_pos_limits.weight = -5.0
         self.rewards.joint_pos_limits.params["asset_cfg"].joint_names = self.leg_joint_names
+        # 惩罚：轮关节接近速度极限时扣分；这里权重为 0，表示当前不启用
         self.rewards.joint_vel_limits.weight = 0
         self.rewards.joint_vel_limits.params["asset_cfg"].joint_names = self.wheel_joint_names
+        # 惩罚：按功率消耗扣分，鼓励更省力的腿部运动
         self.rewards.joint_power.weight = -2e-5
         self.rewards.joint_power.params["asset_cfg"].joint_names = self.leg_joint_names
+        # 惩罚：在应保持静止或低速时仍大幅摆腿会扣分，抑制原地乱动
         self.rewards.stand_still.weight = -2.0
         self.rewards.stand_still.params["asset_cfg"].joint_names = self.leg_joint_names
+        # 惩罚：腿部关节位置偏离参考姿态时扣分，鼓励保持较自然、稳定的默认构型
         self.rewards.joint_pos_penalty.weight = -1.0
         self.rewards.joint_pos_penalty.params["asset_cfg"].joint_names = self.leg_joint_names
+        # 惩罚：轮子在不合适接触状态下的转动行为；这里权重为 0，表示当前不启用
         self.rewards.wheel_vel_penalty.weight = 0
         self.rewards.wheel_vel_penalty.params["sensor_cfg"].body_names = [self.foot_link_name]
         self.rewards.wheel_vel_penalty.params["asset_cfg"].joint_names = self.wheel_joint_names
-        self.rewards.joint_mirror.weight = -0.05
+        # 惩罚：约束对角腿动作镜像一致性，减少左右/前后不协调动作
+        self.rewards.joint_mirror.weight = -0.1
         self.rewards.joint_mirror.params["mirror_joints"] = [
             ["FR_(hip|thigh|calf).*", "RL_(hip|thigh|calf).*"],
             ["FL_(hip|thigh|calf).*", "RR_(hip|thigh|calf).*"],
         ]
 
         # Action penalties
+        # 惩罚：约束相邻时刻动作变化率，抑制控制抖动，提升策略输出平滑性
         self.rewards.action_rate_l2.weight = -0.01
 
         # Contact sensor
-        self.rewards.undesired_contacts.weight = -1.0
+        # 惩罚：非足端/轮端 body 出现接触时扣分，减少机身、髋部等不期望碰撞
+        self.rewards.undesired_contacts.weight = -2.0
         self.rewards.undesired_contacts.params["sensor_cfg"].body_names = [f"^(?!.*{self.foot_link_name}).*"]
+        # 惩罚：足端接触力过大时扣分，鼓励更柔和的落地与支撑
         self.rewards.contact_forces.weight = -1.5e-4
         self.rewards.contact_forces.params["sensor_cfg"].body_names = [self.foot_link_name]
 
         # Velocity-tracking rewards
-        self.rewards.track_lin_vel_xy_exp.weight = 3.0
-        self.rewards.track_ang_vel_z_exp.weight = 1.5
+        # 奖励：鼓励机身 x/y 平面线速度跟踪指令，是主要前进/平移任务奖励之一
+        self.rewards.track_lin_vel_xy_exp.weight = 5.0
+        # 奖励：鼓励机身 z 轴角速度跟踪指令，是主要转向任务奖励之一
+        self.rewards.track_ang_vel_z_exp.weight = 3.0
 
         # Others
-        self.rewards.feet_air_time.weight = 0
+        # 奖励：鼓励足端具有合适腾空时间，常用于步态节律学习；这里权重为 0，表示当前不启用
+        self.rewards.feet_air_time.weight = 15.0
         self.rewards.feet_air_time.params["threshold"] = 0.5
         self.rewards.feet_air_time.params["sensor_cfg"].body_names = [self.foot_link_name]
+        # 奖励：鼓励足端接触事件本身；这里权重为 0，表示当前不启用
         self.rewards.feet_contact.weight = 0
         self.rewards.feet_contact.params["sensor_cfg"].body_names = [self.foot_link_name]
-        self.rewards.feet_contact_without_cmd.weight = 0.1
+        # 奖励：在无速度指令或低指令时鼓励足端接触地面，帮助机器人稳定站立
+        self.rewards.feet_contact_without_cmd.weight = 0.05
         self.rewards.feet_contact_without_cmd.params["sensor_cfg"].body_names = [self.foot_link_name]
+        # 惩罚：足端被障碍绊到时扣分；这里权重为 0，表示当前不启用
         self.rewards.feet_stumble.weight = 0
         self.rewards.feet_stumble.params["sensor_cfg"].body_names = [self.foot_link_name]
+        # 惩罚：足端与地面接触时发生滑移会扣分；这里权重为 0，表示当前不启用
         self.rewards.feet_slide.weight = 0
         self.rewards.feet_slide.params["sensor_cfg"].body_names = [self.foot_link_name]
         self.rewards.feet_slide.params["asset_cfg"].body_names = [self.foot_link_name]
-        self.rewards.feet_height.weight = 0
+        # 奖励/惩罚：约束足端绝对高度接近目标高度；这里权重为 0，表示当前不启用抬脚高度约束
+        self.rewards.feet_height.weight = -0.05
         self.rewards.feet_height.params["target_height"] = 0.1
         self.rewards.feet_height.params["asset_cfg"].body_names = [self.foot_link_name]
+        # 奖励/惩罚：约束足端相对机身的高度关系；这里权重为 0，表示当前不启用
         self.rewards.feet_height_body.weight = 0
         self.rewards.feet_height_body.params["target_height"] = -0.2
         self.rewards.feet_height_body.params["asset_cfg"].body_names = [self.foot_link_name]
-        self.rewards.feet_gait.weight = 0
+        # 奖励：鼓励形成指定对角同步步态；这里权重为 0，表示当前不显式约束步态型态
+        self.rewards.feet_gait.weight = 5
         self.rewards.feet_gait.params["synced_feet_pair_names"] = (("FL_foot", "RR_foot"), ("FR_foot", "RL_foot"))
+        # 奖励：鼓励机身朝上，维持整体竖直稳定姿态
         self.rewards.upward.weight = 1.0
 
 
