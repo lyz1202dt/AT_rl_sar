@@ -197,7 +197,7 @@ class ATDogArmRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.joint_vel_l2.weight = 0
         self.rewards.joint_vel_l2.params["asset_cfg"].joint_names = self.leg_joint_names
         # 惩罚：约束轮关节速度；这里权重为 0，表示当前允许轮子自由转速，不额外惩罚
-        self.rewards.joint_vel_wheel_l2.weight = -5.0e-2
+        self.rewards.joint_vel_wheel_l2.weight = -1.0e-2
         self.rewards.joint_vel_wheel_l2.params["asset_cfg"].joint_names = self.wheel_joint_names
         # 惩罚：约束腿部关节加速度，抑制控制突变，提升动作平滑性
         self.rewards.joint_acc_l2.weight = -2.5e-7
@@ -265,7 +265,7 @@ class ATDogArmRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.feet_stumble.weight = 0
         self.rewards.feet_stumble.params["sensor_cfg"].body_names = [self.foot_link_name]
         # 惩罚：足端与地面接触时发生滑移会扣分；这里权重为 0，表示当前不启用
-        self.rewards.feet_slide.weight = -0.25
+        self.rewards.feet_slide.weight = -0.20
         self.rewards.feet_slide.params["sensor_cfg"].body_names = [self.foot_link_name]
         self.rewards.feet_slide.params["asset_cfg"].body_names = [self.foot_link_name]
         # 奖励/惩罚：约束足端绝对高度接近目标高度；这里权重为 0，表示当前不启用抬脚高度约束
