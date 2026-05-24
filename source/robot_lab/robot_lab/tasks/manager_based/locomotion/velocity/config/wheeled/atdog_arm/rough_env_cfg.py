@@ -270,7 +270,7 @@ class ATDogArmRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.feet_slide.params["asset_cfg"].body_names = [self.foot_link_name]
         # 奖励/惩罚：约束足端绝对高度接近目标高度；这里权重为 0，表示当前不启用抬脚高度约束
         self.rewards.feet_height.weight = -0.07
-        self.rewards.feet_height.params["target_height"] = 0.20
+        self.rewards.feet_height.params["target_height"] = 0.25
         self.rewards.feet_height.params["asset_cfg"].body_names = [self.foot_link_name]
         # 奖励/惩罚：约束足端相对机身的高度关系；这里权重为 0，表示当前不启用
         self.rewards.feet_height_body.weight = 0
