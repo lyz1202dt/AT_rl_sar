@@ -197,7 +197,7 @@ class ATDogArmRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.joint_vel_l2.weight = 0
         self.rewards.joint_vel_l2.params["asset_cfg"].joint_names = self.leg_joint_names
         # 惩罚：约束轮关节速度；这里权重为 0，表示当前允许轮子自由转速，不额外惩罚
-        self.rewards.joint_vel_wheel_l2.weight = -2.5e-2
+        self.rewards.joint_vel_wheel_l2.weight = -2.5e-1
         self.rewards.joint_vel_wheel_l2.params["asset_cfg"].joint_names = self.wheel_joint_names
         # 惩罚：约束腿部关节加速度，抑制控制突变，提升动作平滑性
         self.rewards.joint_acc_l2.weight = -2.5e-7
@@ -253,31 +253,31 @@ class ATDogArmRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         # Others
         # 奖励：鼓励足端具有合适腾空时间，常用于步态节律学习；这里权重为 0，表示当前不启用
         self.rewards.feet_air_time.weight = 20.0
-        self.rewards.feet_air_time.params["threshold"] = 0.2
+        self.rewards.feet_air_time.params["threshold"] = 0.15
         self.rewards.feet_air_time.params["sensor_cfg"].body_names = [self.foot_link_name]
         # 奖励：鼓励足端接触事件本身；这里权重为 0，表示当前不启用
         self.rewards.feet_contact.weight = 0
         self.rewards.feet_contact.params["sensor_cfg"].body_names = [self.foot_link_name]
         # 奖励：在无速度指令或低指令时鼓励足端接触地面，帮助机器人稳定站立
-        self.rewards.feet_contact_without_cmd.weight = 0.07
+        self.rewards.feet_contact_without_cmd.weight = 0.05
         self.rewards.feet_contact_without_cmd.params["sensor_cfg"].body_names = [self.foot_link_name]
         # 惩罚：足端被障碍绊到时扣分；这里权重为 0，表示当前不启用
         self.rewards.feet_stumble.weight = 0
         self.rewards.feet_stumble.params["sensor_cfg"].body_names = [self.foot_link_name]
         # 惩罚：足端与地面接触时发生滑移会扣分；这里权重为 0，表示当前不启用
-        self.rewards.feet_slide.weight = -0.15
+        self.rewards.feet_slide.weight = -0.25
         self.rewards.feet_slide.params["sensor_cfg"].body_names = [self.foot_link_name]
         self.rewards.feet_slide.params["asset_cfg"].body_names = [self.foot_link_name]
         # 奖励/惩罚：约束足端绝对高度接近目标高度；这里权重为 0，表示当前不启用抬脚高度约束
         self.rewards.feet_height.weight = -0.07
-        self.rewards.feet_height.params["target_height"] = 0.1
+        self.rewards.feet_height.params["target_height"] = 0.08
         self.rewards.feet_height.params["asset_cfg"].body_names = [self.foot_link_name]
         # 奖励/惩罚：约束足端相对机身的高度关系；这里权重为 0，表示当前不启用
         self.rewards.feet_height_body.weight = 0
         self.rewards.feet_height_body.params["target_height"] = -0.2
         self.rewards.feet_height_body.params["asset_cfg"].body_names = [self.foot_link_name]
         # 奖励：鼓励形成指定对角同步步态；这里权重为 0，表示当前不显式约束步态型态
-        self.rewards.feet_gait.weight = 7
+        self.rewards.feet_gait.weight = 7.5
         self.rewards.feet_gait.params["synced_feet_pair_names"] = (("FL_foot", "RR_foot"), ("FR_foot", "RL_foot"))
         # 奖励：鼓励机身朝上，维持整体竖直稳定姿态
         self.rewards.upward.weight = 1.0
