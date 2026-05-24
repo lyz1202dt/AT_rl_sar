@@ -216,7 +216,7 @@ class ATDogArmRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.joint_power.weight = -2e-5
         self.rewards.joint_power.params["asset_cfg"].joint_names = self.leg_joint_names
         # 惩罚：在应保持静止或低速时仍大幅摆腿会扣分，抑制原地乱动
-        self.rewards.stand_still.weight = -2.0
+        self.rewards.stand_still.weight = -1.5
         self.rewards.stand_still.params["asset_cfg"].joint_names = self.leg_joint_names
         # 惩罚：腿部关节位置偏离参考姿态时扣分，鼓励保持较自然、稳定的默认构型
         self.rewards.joint_pos_penalty.weight = -1.0
@@ -246,9 +246,9 @@ class ATDogArmRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
 
         # Velocity-tracking rewards
         # 奖励：鼓励机身 x/y 平面线速度跟踪指令，是主要前进/平移任务奖励之一
-        self.rewards.track_lin_vel_xy_exp.weight = 5.0
+        self.rewards.track_lin_vel_xy_exp.weight = 10.0
         # 奖励：鼓励机身 z 轴角速度跟踪指令，是主要转向任务奖励之一
-        self.rewards.track_ang_vel_z_exp.weight = 3.0
+        self.rewards.track_ang_vel_z_exp.weight = 8.0
 
         # Others
         # 奖励：鼓励足端具有合适腾空时间，常用于步态节律学习；这里权重为 0，表示当前不启用
@@ -259,7 +259,7 @@ class ATDogArmRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.feet_contact.weight = 0
         self.rewards.feet_contact.params["sensor_cfg"].body_names = [self.foot_link_name]
         # 奖励：在无速度指令或低指令时鼓励足端接触地面，帮助机器人稳定站立
-        self.rewards.feet_contact_without_cmd.weight = 0.15
+        self.rewards.feet_contact_without_cmd.weight = 0.10
         self.rewards.feet_contact_without_cmd.params["sensor_cfg"].body_names = [self.foot_link_name]
         # 惩罚：足端被障碍绊到时扣分；这里权重为 0，表示当前不启用
         self.rewards.feet_stumble.weight = 0
@@ -269,7 +269,7 @@ class ATDogArmRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.feet_slide.params["sensor_cfg"].body_names = [self.foot_link_name]
         self.rewards.feet_slide.params["asset_cfg"].body_names = [self.foot_link_name]
         # 奖励/惩罚：约束足端绝对高度接近目标高度；这里权重为 0，表示当前不启用抬脚高度约束
-        self.rewards.feet_height.weight = -0.01
+        self.rewards.feet_height.weight = -0.05
         self.rewards.feet_height.params["target_height"] = 0.1
         self.rewards.feet_height.params["asset_cfg"].body_names = [self.foot_link_name]
         # 奖励/惩罚：约束足端相对机身的高度关系；这里权重为 0，表示当前不启用
