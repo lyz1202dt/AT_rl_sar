@@ -32,8 +32,8 @@ cd /workspace/isaaclab_extension_template
   --num_envs=30000 \
   --max_iterations=200\
   --resume \
-  --load_run=2026-05-23_14-26-00 \
-  --checkpoint=model_299.pt \
+  --load_run=2026-05-24_00-56-34 \
+  --checkpoint=model_498.pt \
   --headless
 
 
@@ -45,7 +45,7 @@ cd /workspace/isaaclab_extension_template
 cd /workspace/isaaclab_extension_template
 /workspace/isaaclab/isaaclab.sh -p scripts/reinforcement_learning/rsl_rl/play.py \
   --task=RobotLab-Isaac-Velocity-Flat-ATDog-Dog_Arm-v0 \
-  --checkpoint=/workspace/isaaclab_extension_template/logs/rsl_rl/atdog_arm_flat/2026-05-24_00-56-34/model_498.pt \
+  --checkpoint=/workspace/isaaclab_extension_template/logs/rsl_rl/atdog_arm_flat/2026-05-24_01-59-29/model_697.pt \
   --num_envs=1\
   --headless
 
@@ -61,7 +61,7 @@ cd /workspace/isaaclab_extension_template
 
 初始：2026-05-23_14-26-00
 
-scp -P 3022 sw@shenweitechnology.com:/home/sw/code/AT_rl_sar/logs/rsl_rl/atdog_arm_flat/2026-05-24_00-56-34/exported/policy.onnx ~/桌面/
+scp -P 3022 sw@shenweitechnology.com:/home/sw/code/AT_rl_sar/logs/rsl_rl/atdog_arm_flat/2026-05-24_01-59-29/exported/policy.onnx ~/桌面/
 
 ```bash
 docker cp robot-lab:/workspace/isaaclab_extension_template/logs/rsl_rl/unitree_go2_flat/2026-04-19_08-25-46/exported/policy.pt  ./exported
