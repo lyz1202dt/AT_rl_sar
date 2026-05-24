@@ -29,11 +29,11 @@ cd /workspace/isaaclab_extension_template
 
 /workspace/isaaclab/isaaclab.sh -p /workspace/isaaclab_extension_template/scripts/reinforcement_learning/rsl_rl/train.py \
   --task=RobotLab-Isaac-Velocity-Flat-ATDog-Dog_Arm-v0 \
-  --num_envs=30000 \
-  --max_iterations=200\
+  --num_envs=15000 \
+  --max_iterations=500\
   --resume \
-  --load_run=2026-05-24_01-59-29 \
-  --checkpoint=model_697.pt \
+  --load_run=2026-05-24_02-21-48 \
+  --checkpoint=model_896.pt \
   --headless
 
 
@@ -45,7 +45,7 @@ cd /workspace/isaaclab_extension_template
 cd /workspace/isaaclab_extension_template
 /workspace/isaaclab/isaaclab.sh -p scripts/reinforcement_learning/rsl_rl/play.py \
   --task=RobotLab-Isaac-Velocity-Flat-ATDog-Dog_Arm-v0 \
-  --checkpoint=/workspace/isaaclab_extension_template/logs/rsl_rl/atdog_arm_flat/2026-05-24_02-21-48/model_896.pt \
+  --checkpoint=/workspace/isaaclab_extension_template/logs/rsl_rl/atdog_arm_flat/2026-05-24_02-43-59/model_1395.pt \
   --num_envs=1\
   --headless
 
@@ -61,7 +61,7 @@ cd /workspace/isaaclab_extension_template
 
 初始：2026-05-23_14-26-00
 
-scp -P 3022 sw@shenweitechnology.com:/home/sw/code/AT_rl_sar/logs/rsl_rl/atdog_arm_flat/2026-05-24_02-21-48/exported/policy.onnx ~/桌面/
+scp -P 3022 sw@shenweitechnology.com:/home/sw/code/AT_rl_sar/logs/rsl_rl/atdog_arm_flat/2026-05-24_02-43-59/exported/policy.onnx ~/桌面/
 
 ```bash
 docker cp robot-lab:/workspace/isaaclab_extension_template/logs/rsl_rl/unitree_go2_flat/2026-04-19_08-25-46/exported/policy.pt  ./exported
