@@ -15,8 +15,8 @@ docker/container.sh enter
 ```bash
 cd /workspace/isaaclab_extension_template
 /workspace/isaaclab/isaaclab.sh -p /workspace/isaaclab_extension_template/scripts/reinforcement_learning/rsl_rl/train.py \
-  --task=RobotLab-Isaac-Velocity-Flat-ATDog-Dog-v0 \
-  --num_envs=8000 \
+  --task=RobotLab-Isaac-Velocity-Sand-ATDog-Dog2-v0 \
+  --num_envs=800 \
   --max_iterations=1000\
   --resume \
   --load_run=2026-05-06_13-31-42 \
