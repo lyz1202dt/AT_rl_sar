@@ -45,14 +45,14 @@ cd /workspace/isaaclab_extension_template
 cd /workspace/isaaclab_extension_template
 /workspace/isaaclab/isaaclab.sh -p scripts/reinforcement_learning/rsl_rl/play.py \
   --task=RobotLab-Isaac-Velocity-Flat-ATDog-Dog_Arm-v0 \
-  --checkpoint=/workspace/isaaclab_extension_template/logs/rsl_rl/atdog_arm_flat/2026-05-24_11-48-38/model_3490.pt \
-  --num_envs=1\
+  --checkpoint=/workspace/isaaclab_extension_template/logs/rsl_rl/atdog_arm_flat/2026-05-31_14-32-45/model_4999.pt \
+  --num_envs=10\
   --headless
 
 
 /workspace/isaaclab/isaaclab.sh -p scripts/reinforcement_learning/rsl_rl/play.py \
-  --task=RobotLab-Isaac-Velocity-Rough-ATDog-Dog2-v0 \
-  --checkpoint=/workspace/isaaclab_extension_template/logs/rsl_rl/atdog_dog2_rough/2026-05-08_13-33-53/model_13700.pt \
+  --task=RobotLab-Isaac-Velocity-Flat-ATDog-Dog2-v0 \
+  --checkpoint=/workspace/isaaclab_extension_template/logs/rsl_rl/atdog_dog_flat/2026-05-31_14-32-45/model_4999.pt\
   --num_envs=10
 
 ```
