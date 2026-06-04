@@ -101,6 +101,10 @@ class ATDogDog2StairsEnvCfg(LocomotionVelocityRoughEnvCfg):
         # 说明: 这里常用于做“部分可观测”训练，迫使策略更依赖本体状态
         self.observations.policy.base_lin_vel = None
         self.observations.policy.height_scan = None
+        # 为策略侧启用 5 帧历史观测。
+        # Isaac Lab 会按 term 展开历史后再拼接，和 rl_sar 的 observations_history_priority="term" 对齐。
+        self.observations.policy.history_length = 5
+        self.observations.policy.flatten_history_dim = True
         # 为了与历史 checkpoint 的网络输入维度保持一致，同时关闭 critic 侧高度扫描观测
         # 否则 resume 时会出现 critic 第一层权重 shape mismatch（例如 48 vs 235）
         self.observations.critic.height_scan = None
