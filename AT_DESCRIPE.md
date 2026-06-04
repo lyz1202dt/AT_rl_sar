@@ -1,10 +1,48 @@
 # Robot Lab训练机器人基本流程命令示例（GO2机器人）
 
+
+ATDOG2
+任务名称：
+RobotLab-Isaac-Velocity-Flat-ATDog-Dog2-v0      --平地
+RobotLab-Isaac-Velocity-Rough-ATDog-Dog2-v0     --崎岖
+RobotLab-Isaac-Velocity-Stairs-ATDog-Dog2-v0    --台阶
+RobotLab-Isaac-Velocity-Sand-ATDog-Dog2-v0      --沙地
+RobotLab-Isaac-Velocity-Slope-ATDog-Dog2-v0     --斜坡
+
+ATDOG2ARM
+任务名称：
+RobotLab-Isaac-Velocity-Rough-ATDog-Dog2-Arm-v0   --任务赛（减速带）
+
+ATDOG3
+任务名称：
+RobotLab-Isaac-Velocity-Flat-ATDog-Dog3-v0      --平地
+RobotLab-Isaac-Velocity-Rough-ATDog-Dog3-v0     --崎岖
+RobotLab-Isaac-Velocity-Stairs-ATDog-Dog3-v0    --台阶
+RobotLab-Isaac-Velocity-Sand-ATDog-Dog3-v0      --沙地
+RobotLab-Isaac-Velocity-Slope-ATDog-Dog3-v0     --斜坡
+
+ATDOG3ARM
+任务名称：
+RobotLab-Isaac-Velocity-Rough-ATDog-Dog3-Arm-v0   --任务赛（减速带）
+
+
+
+
+注意：ATDOG已经废弃，请使用ATDOG3
+
+
 export http_proxy=192.168.2.180:7890
 export https_proxy=192.168.2.180:7890
 export socket_proxy=192.168.2.180:7890
 
-ssh -p 3022  sw@shenweitechnology.com
+1.  ssh -p 3022  sw@shenweitechnology.com
+
+2.  cd /home/sw/code/AT_rl_sar
+
+3.  export http_proxy=192.168.2.180:7890
+    export https_proxy=192.168.2.180:7890
+
+4.  docker/container.sh start
 
 ## 创建环境：
 
@@ -29,13 +67,13 @@ cd /workspace/isaaclab_extension_template
 
 /workspace/isaaclab/isaaclab.sh -p /workspace/isaaclab_extension_template/scripts/reinforcement_learning/rsl_rl/train.py \
   --task=RobotLab-Isaac-Velocity-Flat-ATDog-Dog_Arm-v0 \
-  --num_envs=30000 \
-  --max_iterations=100\
-  --resume \
-  --load_run=2026-05-24_09-07-03 \
-  --checkpoint=model_3391.pt \
+  --num_envs=10000 \
+  --max_iterations=2000\
   --headless
 
+--resume \
+  --load_run=2026-05-24_09-07-03 \
+  --checkpoint=model_3391.pt \
 
 ```
 
