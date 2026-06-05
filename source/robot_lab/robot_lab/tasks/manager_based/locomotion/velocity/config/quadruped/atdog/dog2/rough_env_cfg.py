@@ -189,14 +189,13 @@ class ATDogDog2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.lin_vel_z_l2.weight = -10.0
         # 惩罚机身 x/y 角速度（roll/pitch 旋转速度），降低侧翻和点头抖动。
         self.rewards.ang_vel_xy_l2.weight = -6.0
-        # 惩罚机身姿态偏离水平（roll/pitch 倾斜角误差）。
-        # 当前关闭，更多依赖速度追踪与接触项“间接”学稳定姿态。
-        self.rewards.flat_orientation_l2.weight = 0
+        # 惩罚机身姿态偏离水平（roll/pitch 倾斜角误差），避免趴低/歪斜后仍能刷速度奖励。
+        self.rewards.flat_orientation_l2.weight = -2.0
         # 机身高度跟踪惩罚: 鼓励 base 高度接近 target_height。
         # 粗糙地形里若设太大，策略可能过于僵硬，不利于跨坎/踏石。
-        self.rewards.base_height_l2.weight = -0.5
+        self.rewards.base_height_l2.weight = -4.0
         # 目标机身高度（单位 m）。
-        self.rewards.base_height_l2.params["target_height"] = 0.35
+        self.rewards.base_height_l2.params["target_height"] = 0.32
         # 指定用 base 刚体计算该项（避免多 body 统计带来歧义）。
         self.rewards.base_height_l2.params["asset_cfg"].body_names = [self.base_link_name]
         # 惩罚机身线加速度（平滑机身受力/运动），当前关闭。
@@ -212,7 +211,8 @@ class ATDogDog2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.joint_vel_l2.weight = 0
         # 关节加速度 L2 惩罚，鼓励动作更平滑、降低冲击。
         self.rewards.joint_acc_l2.weight = -5.0e-6
-        # self.rewards.create_joint_deviation_l1_rewterm("joint_deviation_hip_l1", -0.2, [".*_hip_joint"])
+        # 轻微约束髋关节，减少腿向身体中线异常内收。
+        self.rewards.create_joint_deviation_l1_rewterm("joint_deviation_hip_l1", -0.2, [".*_hip_joint"])
         # 关节限位惩罚: 接近/触发关节上下限时强惩罚，防止打限位。
         self.rewards.joint_pos_limits.weight = -2.0
         # 关节速度上限惩罚，当前关闭（可在硬件部署前再打开做保守化）。
@@ -241,7 +241,7 @@ class ATDogDog2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
 
         # Contact sensor
         # 非足端 body 接触惩罚（如躯干/大腿触地），鼓励“只让脚接触地面”。
-        self.rewards.undesired_contacts.weight = -20.0
+        self.rewards.undesired_contacts.weight = -70.0
         self.rewards.undesired_contacts.params["sensor_cfg"].body_names = [f"^(?!.*{self.foot_link_name}).*"]
         # 足端接触力惩罚，避免落脚冲击过大。
         # 过大可能导致“轻触地”倾向，影响抓地与推进效率。
@@ -257,7 +257,7 @@ class ATDogDog2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
 
         # Others
         # 足端腾空时间奖励: 鼓励形成明确摆动相，避免拖脚。
-        self.rewards.feet_air_time.weight = 200.0
+        self.rewards.feet_air_time.weight = 120.0
         # 只在腾空时间超过阈值时开始计入（单位 s），避免“微小离地”刷分。
         self.rewards.feet_air_time.params["threshold"] = 0.35
         self.rewards.feet_air_time.params["sensor_cfg"].body_names = [self.foot_link_name]
@@ -282,10 +282,15 @@ class ATDogDog2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.feet_height.params["target_height"] = 0.15
         self.rewards.feet_height.params["asset_cfg"].body_names = [self.foot_link_name]
         # 相对机身的足端高度惩罚（body frame），约束抬腿轨迹不过高/不过低。
-        # target_height=-0.2 表示期望脚位于机身下方一定距离处。
-        self.rewards.feet_height_body.weight = -50.0
-        self.rewards.feet_height_body.params["target_height"] = -0.2
+        # 该项过强会鼓励策略通过降低机身来减小误差，导致行走中趴下。
+        self.rewards.feet_height_body.weight = -8.0
+        self.rewards.feet_height_body.params["target_height"] = -0.28
         self.rewards.feet_height_body.params["asset_cfg"].body_names = [self.foot_link_name]
+        # 左右足端站距奖励，抑制四条腿向身体中线收拢。
+        self.rewards.feet_distance_y_exp.weight = 3.0
+        self.rewards.feet_distance_y_exp.params["stance_width"] = 0.20
+        self.rewards.feet_distance_y_exp.params["std"] = 0.15
+        self.rewards.feet_distance_y_exp.params["asset_cfg"].body_names = [self.foot_link_name]
         # 步态同步奖励: 鼓励对角腿成对同步（trot 风格）。
         self.rewards.feet_gait.weight = 4.0
         self.rewards.feet_gait.params["synced_feet_pair_names"] = (("FL_calf", "RR_calf"), ("FR_calf", "RL_calf"))
@@ -297,9 +302,8 @@ class ATDogDog2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
             self.disable_zero_weight_rewards()
 
         # ------------------------------Terminations 终止条件------------------------------
-        # self.terminations.illegal_contact.params["sensor_cfg"].body_names = [self.base_link_name, ".*_hip"]
-        # 关闭非法接触终止（由奖励项去“软约束”）
-        self.terminations.illegal_contact = None
+        # base 接触地面时终止，避免策略学会趴着蹭地获得速度奖励。
+        self.terminations.illegal_contact.params["sensor_cfg"].body_names = [self.base_link_name]
 
         # ------------------------------Curriculums 课程学习------------------------------
         # self.curriculum.command_levels.params["range_multiplier"] = (0.2, 1.0)

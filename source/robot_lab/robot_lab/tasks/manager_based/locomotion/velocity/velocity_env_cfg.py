@@ -278,7 +278,7 @@ class EventCfg:
         mode="startup",
         params={
             "asset_cfg": SceneEntityCfg("robot", body_names=""),
-            "mass_distribution_params": (-1.0, 3.0),
+            "mass_distribution_params": (-2.0, 3.0),
             "operation": "add",
             "recompute_inertia": True,
         },
@@ -289,7 +289,7 @@ class EventCfg:
         mode="startup",
         params={
             "asset_cfg": SceneEntityCfg("robot", body_names=".*"),
-            "mass_distribution_params": (0.7, 1.3),
+            "mass_distribution_params": (0.7, 1.4),
             "operation": "scale",
             "recompute_inertia": True,
         },
@@ -311,7 +311,7 @@ class EventCfg:
         mode="startup",
         params={
             "asset_cfg": SceneEntityCfg("robot", body_names=".*"),
-            "com_range": {"x": (-0.05, 0.05), "y": (-0.05, 0.05), "z": (-0.05, 0.05)},
+            "com_range": {"x": (-0.15, 0.15), "y": (-0.07, 0.07), "z": (-0.07, 0.07)},
         },
     )
 
@@ -321,8 +321,8 @@ class EventCfg:
         mode="reset",
         params={
             "asset_cfg": SceneEntityCfg("robot", body_names=""),
-            "force_range": (-10.0, 10.0),
-            "torque_range": (-10.0, 10.0),
+            "force_range": (-20.0, 20.0),
+            "torque_range": (-15.0, 15.0),
         },
     )
 
