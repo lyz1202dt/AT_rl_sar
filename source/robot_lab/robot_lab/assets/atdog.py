@@ -180,7 +180,7 @@ AT_DOG3_CFG = ArticulationCfg(
         fix_base=False,
         merge_fixed_joints=True,
         replace_cylinders_with_capsules=False,
-        asset_path=f"{ISAACLAB_ASSETS_DATA_DIR}/Robots/atdog/dog2/urdf/dog3.urdf",
+        asset_path=f"{ISAACLAB_ASSETS_DATA_DIR}/Robots/atdog/dog3/urdf/dog3.urdf",
         activate_contact_sensors=True,
         rigid_props=sim_utils.RigidBodyPropertiesCfg(
             disable_gravity=False,
@@ -212,7 +212,7 @@ AT_DOG3_CFG = ArticulationCfg(
     actuators={
         "legs": DelayedPDActuatorCfg(
             joint_names_expr=[".*"],
-            effort_limit=23.5,
+            effort_limit=33.5,
             velocity_limit=30.0,
             stiffness=25.0,
             damping=0.5,
