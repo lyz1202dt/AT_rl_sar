@@ -97,10 +97,10 @@
     <axis
       xyz="0 0 1" />
     <limit
-      lower="0"
-      upper="0"
-      effort="0"
-      velocity="0" />
+      lower="-0.7"
+      upper="1.5"
+      effort="30"
+      velocity="30" />
   </joint>
   <link
     name="FL_thigh">
@@ -155,10 +155,10 @@
     <axis
       xyz="0 0 1" />
     <limit
-      lower="0"
-      upper="0"
-      effort="0"
-      velocity="0" />
+      lower="-2.4"
+      upper="2.4"
+      effort="30"
+      velocity="30" />
   </joint>
   <link
     name="FL_calf">
@@ -213,10 +213,10 @@
     <axis
       xyz="0 0 1" />
     <limit
-      lower="0"
-      upper="0"
-      effort="0"
-      velocity="0" />
+      lower="-1.1"
+      upper="1.1"
+      effort="30"
+      velocity="30" />
   </joint>
   <link
     name="FL_foot">
@@ -324,10 +324,10 @@
     <axis
       xyz="0 0 1" />
     <limit
-      lower="0"
-      upper="0"
-      effort="0"
-      velocity="0" />
+      lower="-1.5"
+      upper="0.7"
+      effort="30"
+      velocity="30" />
   </joint>
   <link
     name="FR_thigh">
@@ -382,10 +382,10 @@
     <axis
       xyz="0 0 1" />
     <limit
-      lower="0"
-      upper="0"
-      effort="0"
-      velocity="0" />
+      lower="-2.4"
+      upper="2.4"
+      effort="30"
+      velocity="30" />
   </joint>
   <link
     name="FR_calf">
@@ -440,10 +440,10 @@
     <axis
       xyz="0 0 1" />
     <limit
-      lower="0"
-      upper="0"
-      effort="0"
-      velocity="0" />
+      lower="-1.1"
+      upper="1.1"
+      effort="30"
+      velocity="30" />
   </joint>
   <link
     name="FR_foot">
@@ -551,10 +551,10 @@
     <axis
       xyz="0 0 1" />
     <limit
-      lower="0"
-      upper="0"
-      effort="0"
-      velocity="0" />
+      lower="-1.5"
+      upper="0.7"
+      effort="30"
+      velocity="30" />
   </joint>
   <link
     name="RL_thigh">
@@ -609,10 +609,10 @@
     <axis
       xyz="0 0 1" />
     <limit
-      lower="0"
-      upper="0"
-      effort="0"
-      velocity="0" />
+      lower="-2.4"
+      upper="2.4"
+      effort="30"
+      velocity="30" />
   </joint>
   <link
     name="RL_calf">
@@ -667,10 +667,10 @@
     <axis
       xyz="0 0 1" />
     <limit
-      lower="0"
-      upper="0"
-      effort="0"
-      velocity="0" />
+      lower="-1.1"
+      upper="1.1"
+      effort="30"
+      velocity="30" />
   </joint>
   <link
     name="RL_foot">
@@ -778,10 +778,10 @@
     <axis
       xyz="0 0 1" />
     <limit
-      lower="0"
-      upper="0"
-      effort="0"
-      velocity="0" />
+      lower="-0.7"
+      upper="1.5"
+      effort="30"
+      velocity="30" />
   </joint>
   <link
     name="RR_thigh">
@@ -836,10 +836,10 @@
     <axis
       xyz="0 0 1" />
     <limit
-      lower="0"
-      upper="0"
-      effort="0"
-      velocity="0" />
+      lower="-2.4"
+      upper="2.4"
+      effort="30"
+      velocity="30" />
   </joint>
   <link
     name="RR_calf">
@@ -894,10 +894,10 @@
     <axis
       xyz="0 0 1" />
     <limit
-      lower="0"
-      upper="0"
-      effort="0"
-      velocity="0" />
+      lower="-1.1"
+      upper="1.1"
+      effort="30"
+      velocity="30" />
   </joint>
   <link
     name="RR_foot">
