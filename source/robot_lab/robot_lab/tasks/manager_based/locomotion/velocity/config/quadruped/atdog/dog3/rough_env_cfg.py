@@ -221,7 +221,7 @@ class ATDogDog3RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         # 关节位置正则惩罚（通常相对默认姿态/安全姿态），抑制异常构型。
         self.rewards.joint_pos_penalty.weight = -2.5
         # 镜像对称惩罚: 约束对角腿运动统计相近，减少“偏腿”步态。
-        self.rewards.joint_mirror.weight = -0.05
+        self.rewards.joint_mirror.weight = -0.3
         # 指定镜像关节对:
         # - FR 对 RL
         # - FL 对 RR
@@ -233,7 +233,7 @@ class ATDogDog3RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
 
         # Action penalties
         # 动作变化率惩罚，抑制相邻时刻动作突变，提升控制平滑性与可部署性。
-        self.rewards.action_rate_l2.weight = -0.6
+        self.rewards.action_rate_l2.weight = -0.7
 
         # Contact sensor
         # 非足端 body 接触惩罚（如躯干/大腿触地），鼓励“只让脚接触地面”。
@@ -247,7 +247,7 @@ class ATDogDog3RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         # Velocity-tracking rewards
         # 线速度追踪主奖励（xy 平面，指数型）。
         # 常为 locomotion 核心驱动项，值越大越优先“跟得上命令”。
-        self.rewards.track_lin_vel_xy_exp.weight = 25.0
+        self.rewards.track_lin_vel_xy_exp.weight = 80.0
         # 偏航角速度追踪奖励（绕 z 转向），支持转向命令执行。
         self.rewards.track_ang_vel_z_exp.weight = 20.0
 
@@ -283,7 +283,7 @@ class ATDogDog3RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.feet_height_body.params["target_height"] = -0.15
         self.rewards.feet_height_body.params["asset_cfg"].body_names = [self.foot_link_name]
         # 步态同步奖励: 鼓励对角腿成对同步（trot 风格）。
-        self.rewards.feet_gait.weight = 0.8
+        self.rewards.feet_gait.weight = 2.0
         self.rewards.feet_gait.params["synced_feet_pair_names"] = (("FL_calf", "RR_calf"), ("FR_calf", "RL_calf"))
         # 机身“向上”姿态奖励（保持重力反方向对齐），提升整体直立稳定性。
         self.rewards.upward.weight = 1.5
