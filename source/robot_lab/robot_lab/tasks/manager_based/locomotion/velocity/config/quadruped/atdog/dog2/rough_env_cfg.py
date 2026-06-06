@@ -217,7 +217,7 @@ class ATDogDog2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.joint_power.weight = -2e-5
         # 静止命令下站立惩罚项（鼓励“该停就停”）。
         # 权重绝对值越大，零速命令时越倾向快速收敛到稳态。
-        self.rewards.stand_still.weight = -5.0
+        self.rewards.stand_still.weight = -8.0
         # 关节位置正则惩罚（通常相对默认姿态/安全姿态），抑制异常构型。
         self.rewards.joint_pos_penalty.weight = -2.5
         # 镜像对称惩罚: 约束对角腿运动统计相近，减少“偏腿”步态。
