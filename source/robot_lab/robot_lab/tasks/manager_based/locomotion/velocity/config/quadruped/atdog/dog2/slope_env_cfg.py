@@ -177,7 +177,7 @@ class ATDogDog2SlopeEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.flat_orientation_l2.weight = 0
         # 机身高度跟踪惩罚: 鼓励 base 高度接近 target_height。
         # 粗糙地形里若设太大，策略可能过于僵硬，不利于跨坎/踏石。
-        self.rewards.base_height_l2.weight = -20.0
+        self.rewards.base_height_l2.weight = -200.0
         # 目标机身高度（单位 m）。
         self.rewards.base_height_l2.params["target_height"] = 0.3
         # 指定用 base 刚体计算该项（避免多 body 统计带来歧义）。
@@ -251,7 +251,7 @@ class ATDogDog2SlopeEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.feet_contact.weight = 0
         self.rewards.feet_contact.params["sensor_cfg"].body_names = [self.foot_link_name]
         # 无速度命令时的足接触奖励: 鼓励静止时脚不乱抬，站姿更稳。
-        self.rewards.feet_contact_without_cmd.weight = 0.1
+        self.rewards.feet_contact_without_cmd.weight = 0.7
         self.rewards.feet_contact_without_cmd.params["sensor_cfg"].body_names = [self.foot_link_name]
         # 绊脚/碰撞惩罚，当前关闭（可按地形难度逐步启用）。
         self.rewards.feet_stumble.weight = 0.0
@@ -262,7 +262,7 @@ class ATDogDog2SlopeEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.feet_slide.params["asset_cfg"].body_names = [self.foot_link_name]
         # 足端绝对高度目标项（常用于抬脚高度约束），当前关闭。
         self.rewards.feet_height.weight = -50
-        self.rewards.feet_height.params["target_height"] = 0.15
+        self.rewards.feet_height.params["target_height"] = 0.12
         self.rewards.feet_height.params["asset_cfg"].body_names = [self.foot_link_name]
         # 相对机身的足端高度惩罚（body frame），约束抬腿轨迹不过高/不过低。
         # target_height=-0.2 表示期望脚位于机身下方一定距离处。
@@ -273,7 +273,7 @@ class ATDogDog2SlopeEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.feet_gait.weight = 0.5
         self.rewards.feet_gait.params["synced_feet_pair_names"] = (("FL_calf", "RR_calf"), ("FR_calf", "RL_calf"))
         # 机身“向上”姿态奖励（保持重力反方向对齐），提升整体直立稳定性。
-        self.rewards.upward.weight = 1.5
+        self.rewards.upward.weight = 0.3
 
         # 将权重为0的奖励项禁用，减少无效计算与配置噪声
         if self.__class__.__name__ == "ATDogDog2SlopeEnvCfg":
