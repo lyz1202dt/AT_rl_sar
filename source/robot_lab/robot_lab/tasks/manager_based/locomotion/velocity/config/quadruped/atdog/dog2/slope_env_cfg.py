@@ -169,15 +169,15 @@ class ATDogDog2SlopeEnvCfg(LocomotionVelocityRoughEnvCfg):
         # Root penalties
         # 惩罚机身 z 方向线速度，抑制“跳跃/颠簸”。
         # 绝对值增大 -> 更追求贴地平稳；过大可能抑制跨越障碍能力。
-        self.rewards.lin_vel_z_l2.weight = -4.0
+        self.rewards.lin_vel_z_l2.weight = -8.0
         # 惩罚机身 x/y 角速度（roll/pitch 旋转速度），降低侧翻和点头抖动。
-        self.rewards.ang_vel_xy_l2.weight = -0.2
+        self.rewards.ang_vel_xy_l2.weight = -1.0
         # 惩罚机身姿态偏离水平（roll/pitch 倾斜角误差）。
         # 当前关闭，更多依赖速度追踪与接触项“间接”学稳定姿态。
         self.rewards.flat_orientation_l2.weight = 0
         # 机身高度跟踪惩罚: 鼓励 base 高度接近 target_height。
         # 粗糙地形里若设太大，策略可能过于僵硬，不利于跨坎/踏石。
-        self.rewards.base_height_l2.weight = -200.0
+        self.rewards.base_height_l2.weight = -300.0
         # 目标机身高度（单位 m）。
         self.rewards.base_height_l2.params["target_height"] = 0.35
         # 指定用 base 刚体计算该项（避免多 body 统计带来歧义）。
@@ -220,11 +220,11 @@ class ATDogDog2SlopeEnvCfg(LocomotionVelocityRoughEnvCfg):
 
         # Action penalties
         # 动作变化率惩罚，抑制相邻时刻动作突变，提升控制平滑性与可部署性。
-        self.rewards.action_rate_l2.weight = -0.5
+        self.rewards.action_rate_l2.weight = -0.6
 
         # Contact sensor
         # 非足端 body 接触惩罚（如躯干/大腿触地），鼓励“只让脚接触地面”。
-        self.rewards.undesired_contacts.weight = -100.0
+        self.rewards.undesired_contacts.weight = -200.0
         self.rewards.undesired_contacts.params["sensor_cfg"].body_names = [f"^(?!.*{self.foot_link_name}).*"]
         # 足端接触力惩罚，避免落脚冲击过大。
         # 过大可能导致“轻触地”倾向，影响抓地与推进效率。
@@ -234,7 +234,7 @@ class ATDogDog2SlopeEnvCfg(LocomotionVelocityRoughEnvCfg):
         # Velocity-tracking rewards
         # 线速度追踪主奖励（xy 平面，指数型）。
         # 常为 locomotion 核心驱动项，值越大越优先“跟得上命令”。
-        self.rewards.track_lin_vel_xy_exp.weight = 30.0
+        self.rewards.track_lin_vel_xy_exp.weight = 40.0
         # 偏航角速度追踪奖励（绕 z 转向），支持转向命令执行。
         self.rewards.track_ang_vel_z_exp.weight = 20.0
 
@@ -257,7 +257,7 @@ class ATDogDog2SlopeEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.feet_stumble.weight = 0.0
         self.rewards.feet_stumble.params["sensor_cfg"].body_names = [self.foot_link_name]
         # 足端滑动惩罚: 脚着地后相对地面滑移越大，惩罚越大。
-        self.rewards.feet_slide.weight = -3.0
+        self.rewards.feet_slide.weight = -5.0
         self.rewards.feet_slide.params["sensor_cfg"].body_names = [self.foot_link_name]
         self.rewards.feet_slide.params["asset_cfg"].body_names = [self.foot_link_name]
         # 足端绝对高度目标项（常用于抬脚高度约束），当前关闭。
@@ -273,7 +273,7 @@ class ATDogDog2SlopeEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.feet_gait.weight = 0.5
         self.rewards.feet_gait.params["synced_feet_pair_names"] = (("FL_calf", "RR_calf"), ("FR_calf", "RL_calf"))
         # 机身“向上”姿态奖励（保持重力反方向对齐），提升整体直立稳定性。
-        self.rewards.upward.weight = 0.0
+        self.rewards.upward.weight = 0.5
 
         # 将权重为0的奖励项禁用，减少无效计算与配置噪声
         if self.__class__.__name__ == "ATDogDog2SlopeEnvCfg":
