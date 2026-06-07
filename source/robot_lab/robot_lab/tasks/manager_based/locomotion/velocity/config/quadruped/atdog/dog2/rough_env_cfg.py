@@ -182,9 +182,9 @@ class ATDogDog2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         # Root penalties
         # 惩罚机身 z 方向线速度，抑制“跳跃/颠簸”。
         # 绝对值增大 -> 更追求贴地平稳；过大可能抑制跨越障碍能力。
-        self.rewards.lin_vel_z_l2.weight = -4.0
+        self.rewards.lin_vel_z_l2.weight = -8.0
         # 惩罚机身 x/y 角速度（roll/pitch 旋转速度），降低侧翻和点头抖动。
-        self.rewards.ang_vel_xy_l2.weight = -0.8
+        self.rewards.ang_vel_xy_l2.weight = -2.0
         # 惩罚机身姿态偏离水平（roll/pitch 倾斜角误差）。
         # 当前关闭，更多依赖速度追踪与接触项“间接”学稳定姿态。
         self.rewards.flat_orientation_l2.weight = 0
@@ -221,7 +221,7 @@ class ATDogDog2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         # 关节位置正则惩罚（通常相对默认姿态/安全姿态），抑制异常构型。
         self.rewards.joint_pos_penalty.weight = -2.5
         # 镜像对称惩罚: 约束对角腿运动统计相近，减少“偏腿”步态。
-        self.rewards.joint_mirror.weight = -0.05
+        self.rewards.joint_mirror.weight = -0.2
         # 指定镜像关节对:
         # - FR 对 RL
         # - FL 对 RR
@@ -247,7 +247,7 @@ class ATDogDog2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         # Velocity-tracking rewards
         # 线速度追踪主奖励（xy 平面，指数型）。
         # 常为 locomotion 核心驱动项，值越大越优先“跟得上命令”。
-        self.rewards.track_lin_vel_xy_exp.weight = 25.0
+        self.rewards.track_lin_vel_xy_exp.weight = 35.0
         # 偏航角速度追踪奖励（绕 z 转向），支持转向命令执行。
         self.rewards.track_ang_vel_z_exp.weight = 20.0
 
@@ -286,7 +286,7 @@ class ATDogDog2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.feet_gait.weight = 0.8
         self.rewards.feet_gait.params["synced_feet_pair_names"] = (("FL_calf", "RR_calf"), ("FR_calf", "RL_calf"))
         # 机身“向上”姿态奖励（保持重力反方向对齐），提升整体直立稳定性。
-        self.rewards.upward.weight = 1.5
+        self.rewards.upward.weight = 4.0
 
         # 将权重为0的奖励项禁用，减少无效计算与配置噪声
         if self.__class__.__name__ == "ATDogDog2RoughEnvCfg":
