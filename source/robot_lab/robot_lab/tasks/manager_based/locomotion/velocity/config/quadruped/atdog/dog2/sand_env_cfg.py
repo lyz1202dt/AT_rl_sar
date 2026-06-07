@@ -210,7 +210,7 @@ class ATDogDog2SandEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.joint_acc_l2.weight = -6.0e-6
         # self.rewards.create_joint_deviation_l1_rewterm("joint_deviation_hip_l1", -0.2, [".*_hip_joint"])
         # 关节限位惩罚: 接近/触发关节上下限时强惩罚，防止打限位。
-        self.rewards.joint_pos_limits.weight = -5.0
+        self.rewards.joint_pos_limits.weight = -2.0
         # 关节速度上限惩罚，当前关闭（可在硬件部署前再打开做保守化）。
         self.rewards.joint_vel_limits.weight = 0
         # 关节功率惩罚（约束机械功输出），降低发热与电池消耗。
@@ -219,7 +219,7 @@ class ATDogDog2SandEnvCfg(LocomotionVelocityRoughEnvCfg):
         # 权重绝对值越大，零速命令时越倾向快速收敛到稳态。
         self.rewards.stand_still.weight = -8.0
         # 关节位置正则惩罚（通常相对默认姿态/安全姿态），抑制异常构型。
-        self.rewards.joint_pos_penalty.weight = -2.5
+        self.rewards.joint_pos_penalty.weight = -2.0
         # 镜像对称惩罚: 约束对角腿运动统计相近，减少“偏腿”步态。
         self.rewards.joint_mirror.weight = -0.07
         # 指定镜像关节对:
@@ -247,7 +247,7 @@ class ATDogDog2SandEnvCfg(LocomotionVelocityRoughEnvCfg):
         # Velocity-tracking rewards
         # 线速度追踪主奖励（xy 平面，指数型）。
         # 常为 locomotion 核心驱动项，值越大越优先“跟得上命令”。
-        self.rewards.track_lin_vel_xy_exp.weight = 55.0
+        self.rewards.track_lin_vel_xy_exp.weight = 80.0
         # 偏航角速度追踪奖励（绕 z 转向），支持转向命令执行。
         self.rewards.track_ang_vel_z_exp.weight = 40.0
 
@@ -270,7 +270,7 @@ class ATDogDog2SandEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.feet_stumble.weight = 0.0
         self.rewards.feet_stumble.params["sensor_cfg"].body_names = [self.foot_link_name]
         # 足端滑动惩罚: 脚着地后相对地面滑移越大，惩罚越大。
-        self.rewards.feet_slide.weight = -3.0
+        self.rewards.feet_slide.weight = -2.0
         self.rewards.feet_slide.params["sensor_cfg"].body_names = [self.foot_link_name]
         self.rewards.feet_slide.params["asset_cfg"].body_names = [self.foot_link_name]
         # 足端绝对高度目标项（常用于抬脚高度约束），当前关闭。

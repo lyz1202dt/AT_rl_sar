@@ -190,9 +190,9 @@ class ATDogDog2StairsEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.flat_orientation_l2.weight = 0
         # 机身高度跟踪惩罚: 鼓励 base 高度接近 target_height。
         # 粗糙地形里若设太大，策略可能过于僵硬，不利于跨坎/踏石。
-        self.rewards.base_height_l2.weight = -20.0
+        self.rewards.base_height_l2.weight = -50.0
         # 目标机身高度（单位 m）。
-        self.rewards.base_height_l2.params["target_height"] = 0.3
+        self.rewards.base_height_l2.params["target_height"] = 0.34
         # 指定用 base 刚体计算该项（避免多 body 统计带来歧义）。
         self.rewards.base_height_l2.params["asset_cfg"].body_names = [self.base_link_name]
         # 惩罚机身线加速度（平滑机身受力/运动），当前关闭。
@@ -210,7 +210,7 @@ class ATDogDog2StairsEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.joint_acc_l2.weight = -6.0e-6
         # self.rewards.create_joint_deviation_l1_rewterm("joint_deviation_hip_l1", -0.2, [".*_hip_joint"])
         # 关节限位惩罚: 接近/触发关节上下限时强惩罚，防止打限位。
-        self.rewards.joint_pos_limits.weight = -5.0
+        self.rewards.joint_pos_limits.weight = -2.0
         # 关节速度上限惩罚，当前关闭（可在硬件部署前再打开做保守化）。
         self.rewards.joint_vel_limits.weight = 0
         # 关节功率惩罚（约束机械功输出），降低发热与电池消耗。
@@ -219,9 +219,9 @@ class ATDogDog2StairsEnvCfg(LocomotionVelocityRoughEnvCfg):
         # 权重绝对值越大，零速命令时越倾向快速收敛到稳态。
         self.rewards.stand_still.weight = -8.0
         # 关节位置正则惩罚（通常相对默认姿态/安全姿态），抑制异常构型。
-        self.rewards.joint_pos_penalty.weight = -2.5
+        self.rewards.joint_pos_penalty.weight = -2.0
         # 镜像对称惩罚: 约束对角腿运动统计相近，减少“偏腿”步态。
-        self.rewards.joint_mirror.weight = -0.05
+        self.rewards.joint_mirror.weight = -0.07
         # 指定镜像关节对:
         # - FR 对 RL
         # - FL 对 RR
@@ -237,7 +237,7 @@ class ATDogDog2StairsEnvCfg(LocomotionVelocityRoughEnvCfg):
 
         # Contact sensor
         # 非足端 body 接触惩罚（如躯干/大腿触地），鼓励“只让脚接触地面”。
-        self.rewards.undesired_contacts.weight = -20.0
+        self.rewards.undesired_contacts.weight = -100.0
         self.rewards.undesired_contacts.params["sensor_cfg"].body_names = [f"^(?!.*{self.foot_link_name}).*"]
         # 足端接触力惩罚，避免落脚冲击过大。
         # 过大可能导致“轻触地”倾向，影响抓地与推进效率。
@@ -247,13 +247,13 @@ class ATDogDog2StairsEnvCfg(LocomotionVelocityRoughEnvCfg):
         # Velocity-tracking rewards
         # 线速度追踪主奖励（xy 平面，指数型）。
         # 常为 locomotion 核心驱动项，值越大越优先“跟得上命令”。
-        self.rewards.track_lin_vel_xy_exp.weight = 25.0
+        self.rewards.track_lin_vel_xy_exp.weight = 80.0
         # 偏航角速度追踪奖励（绕 z 转向），支持转向命令执行。
-        self.rewards.track_ang_vel_z_exp.weight = 20.0
+        self.rewards.track_ang_vel_z_exp.weight = 40.0
 
         # Others
         # 足端腾空时间奖励: 鼓励形成明确摆动相，避免拖脚。
-        self.rewards.feet_air_time.weight = 40.0
+        self.rewards.feet_air_time.weight = 70.0
         # 只在腾空时间超过阈值时开始计入（单位 s），避免“微小离地”刷分。
         self.rewards.feet_air_time.params["threshold"] = 0.3
         self.rewards.feet_air_time.params["sensor_cfg"].body_names = [self.foot_link_name]
@@ -270,12 +270,12 @@ class ATDogDog2StairsEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.feet_stumble.weight = 0.0
         self.rewards.feet_stumble.params["sensor_cfg"].body_names = [self.foot_link_name]
         # 足端滑动惩罚: 脚着地后相对地面滑移越大，惩罚越大。
-        self.rewards.feet_slide.weight = -3.0
+        self.rewards.feet_slide.weight = -2.0
         self.rewards.feet_slide.params["sensor_cfg"].body_names = [self.foot_link_name]
         self.rewards.feet_slide.params["asset_cfg"].body_names = [self.foot_link_name]
         # 足端绝对高度目标项（常用于抬脚高度约束），当前关闭。
         self.rewards.feet_height.weight = -50
-        self.rewards.feet_height.params["target_height"] = 0.15
+        self.rewards.feet_height.params["target_height"] = 0.18
         self.rewards.feet_height.params["asset_cfg"].body_names = [self.foot_link_name]
         # 相对机身的足端高度惩罚（body frame），约束抬腿轨迹不过高/不过低。
         # target_height=-0.2 表示期望脚位于机身下方一定距离处。
@@ -286,7 +286,7 @@ class ATDogDog2StairsEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.feet_gait.weight = 0.5
         self.rewards.feet_gait.params["synced_feet_pair_names"] = (("FL_calf", "RR_calf"), ("FR_calf", "RL_calf"))
         # 机身“向上”姿态奖励（保持重力反方向对齐），提升整体直立稳定性。
-        self.rewards.upward.weight = 1.5
+        self.rewards.upward.weight = 1.0
 
         # 将权重为0的奖励项禁用，减少无效计算与配置噪声
         if self.__class__.__name__ == "ATDogDog2StairsEnvCfg":
