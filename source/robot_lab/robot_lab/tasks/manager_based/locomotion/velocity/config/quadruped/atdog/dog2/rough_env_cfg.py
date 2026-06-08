@@ -288,6 +288,11 @@ class ATDogDog2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         # 机身“向上”姿态奖励（保持重力反方向对齐），提升整体直立稳定性。
         self.rewards.upward.weight = 1.5
 
+        self.rewards.feet_distance_y_exp.weight = 6.0
+        self.rewards.feet_distance_y_exp.params["stance_width"] = 0.14
+        self.rewards.feet_distance_y_exp.params["std"] = 0.15
+        self.rewards.feet_distance_y_exp.params["asset_cfg"].body_names = ["FL_calf", "FR_calf", "RL_calf", "RR_calf"]
+
         # 将权重为0的奖励项禁用，减少无效计算与配置噪声
         if self.__class__.__name__ == "ATDogDog2RoughEnvCfg":
             self.disable_zero_weight_rewards()
