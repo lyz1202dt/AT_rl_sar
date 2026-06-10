@@ -39,8 +39,9 @@ export socket_proxy=192.168.2.180:7890
 
 2.  cd /home/sw/code/AT_rl_sar
 
-3.  export http_proxy=192.168.2.180:7890
-    export https_proxy=192.168.2.180:7890
+3.  
+export http_proxy=192.168.2.180:7890
+export https_proxy=192.168.2.180:7890
 
 4.  docker/container.sh start
 
@@ -62,7 +63,15 @@ cd /workspace/isaaclab_extension_template
   --max_iterations=1000\
   --headless 
 
-
+cd /workspace/isaaclab_extension_template
+/workspace/isaaclab/isaaclab.sh -p /workspace/isaaclab_extension_template/scripts/reinforcement_learning/rsl_rl/train.py \
+  --task=RobotLab-Isaac-Velocity-Rough-ATDog-Dog2-Arm-v0 \
+  --num_envs=10000 \
+  --max_iterations=1000\
+  --headless \
+  --resume \
+  --load_run=2026-06-10_01-47-29 \
+  --checkpoint=model_35988.pt 
 
 
 /workspace/isaaclab/isaaclab.sh -p /workspace/isaaclab_extension_template/scripts/reinforcement_learning/rsl_rl/train.py \
@@ -71,9 +80,7 @@ cd /workspace/isaaclab_extension_template
   --max_iterations=2000\
   --headless
 
---resume \
-  --load_run=2026-05-24_09-07-03 \
-  --checkpoint=model_3391.pt \
+
 
 ```
 
@@ -87,6 +94,13 @@ cd /workspace/isaaclab_extension_template
   --num_envs=10\
   --headless
 
+/workspace/isaaclab/isaaclab.sh -p scripts/reinforcement_learning/rsl_rl/play.py \
+  --task=RobotLab-Isaac-Velocity-Rough-ATDog-Dog2-Arm-v0 \
+  --checkpoint=/workspace/isaaclab_extension_template/logs/rsl_rl/atdog_dog2_arm_rough/2026-06-10_01-47-29/model_35988.pt \
+  --num_envs=1\
+  --headless
+
+
 
 /workspace/isaaclab/isaaclab.sh -p scripts/reinforcement_learning/rsl_rl/play.py \
   --task=RobotLab-Isaac-Velocity-Flat-ATDog-Dog2-v0 \
@@ -99,7 +113,9 @@ cd /workspace/isaaclab_extension_template
 
 初始：2026-05-23_14-26-00
 
-scp -P 3022 sw@shenweitechnology.com:/home/sw/code/AT_rl_sar/logs/rsl_rl/atdog_arm_flat/2026-05-24_11-48-38/exported/policy.onnx ~/桌面/
+scp -P 3022 sw@shenweitechnology.com:/home/sw/code/AT_rl_sar/logs/rsl_rl/atdog_dog2_flat/2026-06-07_18-30-45/exported/policy.pt ~/桌面/
+
+scp -P 3022 sw@shenweitechnology.com:/home/sw/code/AT_rl_sar/logs/rsl_rl/atdog_dog2_arm_rough/2026-06-10_01-47-29/exported/policy.pt ~/桌面/
 
 ```bash
 docker cp robot-lab:/workspace/isaaclab_extension_template/logs/rsl_rl/unitree_go2_flat/2026-04-19_08-25-46/exported/policy.pt  ./exported
