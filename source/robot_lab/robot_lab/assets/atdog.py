@@ -51,7 +51,7 @@ AT_DOG2_CFG = ArticulationCfg(
             velocity_limit=30.0,
             stiffness=25.0,
             damping=0.5,
-            friction=0.0,
+            friction=0.5,
             min_delay=1,  # physics steps (sim.dt=0.005s): 1 * 5ms = 5ms
             max_delay=2,  # physics steps (fixed delay): 1 * 5ms = 5ms
         ),
@@ -281,7 +281,7 @@ AT_DOG3_ARM_CFG = ArticulationCfg(
         fix_base=False,
         merge_fixed_joints=True,
         replace_cylinders_with_capsules=False,
-        asset_path=f"{ISAACLAB_ASSETS_DATA_DIR}/Robots/atdog/dog2_arm/urdf/dog3_arm.urdf",
+        asset_path=f"{ISAACLAB_ASSETS_DATA_DIR}/Robots/atdog/dog3/urdf/dog3.urdf",
         activate_contact_sensors=True,
         rigid_props=sim_utils.RigidBodyPropertiesCfg(
             disable_gravity=False,
@@ -317,7 +317,7 @@ AT_DOG3_ARM_CFG = ArticulationCfg(
             velocity_limit=30.0,
             stiffness=25.0,
             damping=0.5,
-            friction=0.0,
+            friction=0.2,
             min_delay=1,  # physics steps (sim.dt=0.005s): 1 * 5ms = 5ms
             max_delay=2,  # physics steps (fixed delay): 1 * 5ms = 5ms
         ),

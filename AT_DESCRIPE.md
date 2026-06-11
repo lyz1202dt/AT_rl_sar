@@ -70,8 +70,17 @@ cd /workspace/isaaclab_extension_template
   --max_iterations=1000\
   --headless \
   --resume \
-  --load_run=2026-06-10_01-47-29 \
-  --checkpoint=model_35988.pt 
+  --load_run=2026-06-10_11-04-22 \
+  --checkpoint=model_36987.pt 
+
+/workspace/isaaclab/isaaclab.sh -p /workspace/isaaclab_extension_template/scripts/reinforcement_learning/rsl_rl/train.py \
+  --task=RobotLab-Isaac-Velocity-Stairs-ATDog-Dog2-v0 \
+  --num_envs=30000 \
+  --max_iterations=5000\
+  --headless \
+  --resume \
+  --load_run=2026-06-10_07-27-33 \
+  --checkpoint=model_18400.pt 
 
 
 /workspace/isaaclab/isaaclab.sh -p /workspace/isaaclab_extension_template/scripts/reinforcement_learning/rsl_rl/train.py \
@@ -81,6 +90,15 @@ cd /workspace/isaaclab_extension_template
   --headless
 
 
+
+/workspace/isaaclab/isaaclab.sh -p /workspace/isaaclab_extension_template/scripts/reinforcement_learning/rsl_rl/train.py \
+  --task=RobotLab-Isaac-Velocity-Rough-ATDog-Dog3-Arm-v0 \
+  --num_envs=25000 \
+  --max_iterations=2000\
+  --headless \
+  --resume \
+  --load_run=2026-06-10_22-03-55 \
+  --checkpoint=model_36987.pt
 
 ```
 
@@ -96,7 +114,13 @@ cd /workspace/isaaclab_extension_template
 
 /workspace/isaaclab/isaaclab.sh -p scripts/reinforcement_learning/rsl_rl/play.py \
   --task=RobotLab-Isaac-Velocity-Rough-ATDog-Dog2-Arm-v0 \
-  --checkpoint=/workspace/isaaclab_extension_template/logs/rsl_rl/atdog_dog2_arm_rough/2026-06-10_01-47-29/model_35988.pt \
+  --checkpoint=/workspace/isaaclab_extension_template/logs/rsl_rl/atdog_dog2_arm_rough/2026-06-10_12-04-44/model_37986.pt \
+  --num_envs=1\
+  --headless
+
+/workspace/isaaclab/isaaclab.sh -p scripts/reinforcement_learning/rsl_rl/play.py \
+  --task=RobotLab-Isaac-Velocity-Rough-ATDog-Dog3-Arm-v0 \
+  --checkpoint=/workspace/isaaclab_extension_template/logs/rsl_rl/atdog_dog3_arm_rough/2026-06-10_14-05-13/model_38986.pt \
   --num_envs=1\
   --headless
 
@@ -115,10 +139,18 @@ cd /workspace/isaaclab_extension_template
 
 scp -P 3022 sw@shenweitechnology.com:/home/sw/code/AT_rl_sar/logs/rsl_rl/atdog_dog2_flat/2026-06-07_18-30-45/exported/policy.pt ~/桌面/
 
-scp -P 3022 sw@shenweitechnology.com:/home/sw/code/AT_rl_sar/logs/rsl_rl/atdog_dog2_arm_rough/2026-06-10_01-47-29/exported/policy.pt ~/桌面/
+scp -P 3022 sw@shenweitechnology.com:/home/sw/code/AT_rl_sar/logs/rsl_rl/atdog_dog2_arm_rough/2026-06-10_11-04-22/exported/policy.pt ~/桌面/
+
+scp -P 3022 sw@shenweitechnology.com:/home/sw/code/AT_rl_sar/logs/rsl_rl/atdog_dog3_arm_rough/2026-06-10_14-05-13/exported/policy.pt ~/桌面/
+
+
+scp -P 3022 sw@shenweitechnology.com:/home/sw/code/AT_rl_sar/logs/rsl_rl/atdog_dog2_arm_rough/2026-06-10_11-04-22 ~/桌面/
 
 ```bash
-docker cp robot-lab:/workspace/isaaclab_extension_template/logs/rsl_rl/unitree_go2_flat/2026-04-19_08-25-46/exported/policy.pt  ./exported
+docker cp robot-lab:/workspace/isaaclab_extension_template/logs/rsl_rl/atdog_dog2_arm_rough/2026-06-10_11-04-22  robot-lab:/workspace/isaaclab_extension_template/logs/rsl_rl/atdog_dog3_arm_rough/
+
+
+cp atdog_dog2_arm_rough/2026-06-10_11-04-22  atdog_dog3_arm_rough/
 ```
 
 

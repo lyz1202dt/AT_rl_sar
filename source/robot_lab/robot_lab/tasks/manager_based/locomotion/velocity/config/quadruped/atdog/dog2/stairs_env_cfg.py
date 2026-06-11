@@ -167,6 +167,10 @@ class ATDogDog2StairsEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.events.randomize_com_positions.params["asset_cfg"].body_names = [self.base_link_name]
         # 外力/外力矩扰动施加到 base，模拟推搡/干扰
         self.events.randomize_apply_external_force_torque.params["asset_cfg"].body_names = [self.base_link_name]
+        
+        self.events.randomize_rigid_body_material.params["asset_cfg"].body_names = [self.foot_link_name]
+        self.events.randomize_rigid_body_material.params["static_friction_range"] = (0.8, 2.2)
+        self.events.randomize_rigid_body_material.params["dynamic_friction_range"] = (0.6, 1.8)
 
         # ------------------------------Rewards 奖励函数------------------------------
         # 约定:
