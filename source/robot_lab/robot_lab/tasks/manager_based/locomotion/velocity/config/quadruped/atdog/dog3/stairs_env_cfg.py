@@ -190,9 +190,9 @@ class ATDogDog3StairsEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.flat_orientation_l2.weight = 0
         # 机身高度跟踪惩罚: 鼓励 base 高度接近 target_height。
         # 粗糙地形里若设太大，策略可能过于僵硬，不利于跨坎/踏石。
-        self.rewards.base_height_l2.weight = -50.0
+        self.rewards.base_height_l2.weight = -200.0
         # 目标机身高度（单位 m）。
-        self.rewards.base_height_l2.params["target_height"] = 0.34
+        self.rewards.base_height_l2.params["target_height"] = 0.5
         # 指定用 base 刚体计算该项（避免多 body 统计带来歧义）。
         self.rewards.base_height_l2.params["asset_cfg"].body_names = [self.base_link_name]
         # 惩罚机身线加速度（平滑机身受力/运动），当前关闭。
@@ -233,7 +233,7 @@ class ATDogDog3StairsEnvCfg(LocomotionVelocityRoughEnvCfg):
 
         # Action penalties
         # 动作变化率惩罚，抑制相邻时刻动作突变，提升控制平滑性与可部署性。
-        self.rewards.action_rate_l2.weight = -0.6
+        self.rewards.action_rate_l2.weight = -1.0
 
         # Contact sensor
         # 非足端 body 接触惩罚（如躯干/大腿触地），鼓励“只让脚接触地面”。
@@ -247,9 +247,9 @@ class ATDogDog3StairsEnvCfg(LocomotionVelocityRoughEnvCfg):
         # Velocity-tracking rewards
         # 线速度追踪主奖励（xy 平面，指数型）。
         # 常为 locomotion 核心驱动项，值越大越优先“跟得上命令”。
-        self.rewards.track_lin_vel_xy_exp.weight = 80.0
+        self.rewards.track_lin_vel_xy_exp.weight = 50.0
         # 偏航角速度追踪奖励（绕 z 转向），支持转向命令执行。
-        self.rewards.track_ang_vel_z_exp.weight = 40.0
+        self.rewards.track_ang_vel_z_exp.weight = 35.0
 
         # Others
         # 足端腾空时间奖励: 鼓励形成明确摆动相，避免拖脚。
