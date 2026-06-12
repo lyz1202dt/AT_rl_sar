@@ -1,6 +1,7 @@
 # Copyright (c) 2024-2025 Ziqi Fan
 # SPDX-License-Identifier: Apache-2.0
 import robot_lab.tasks.manager_based.locomotion.velocity.mdp as mdp
+import robot_lab.terrains as robot_lab_terrain_gen
 from isaaclab.utils import configclass
 import isaaclab.terrains as terrain_gen
 from isaaclab.managers import ObservationTermCfg as ObsTerm
@@ -17,12 +18,43 @@ from robot_lab.tasks.manager_based.locomotion.velocity.velocity_env_cfg import L
 # use local assets
 from robot_lab.assets.atdog import AT_DOG3_CFG  # isort: skip
 
-# 自定义台阶地形（倒金字塔上台阶）:
+# 原始台阶地形配置，保留作对照:
+# DOG3_STAIRS_TERRAIN_CFG = terrain_gen.TerrainGeneratorCfg(
+#     size=(8.0, 8.0),
+#     border_width=20.0,
+#     num_rows=10,
+#     num_cols=20,
+#     horizontal_scale=0.1,
+#     vertical_scale=0.005,
+#     slope_threshold=0.75,
+#     use_cache=False,
+#     sub_terrains={
+#         "stairs": terrain_gen.MeshInvertedPyramidStairsTerrainCfg(
+#             proportion=1.0,
+#             step_height_range=(0.09, 0.11),  # (最初0.07-0.13)
+#             step_width=0.30,
+#             platform_width=3.0,
+#             border_width=1.0,
+#             holes=False,
+#         ),
+#         "stairs2": terrain_gen.MeshPyramidStairsTerrainCfg(
+#             proportion=1.0,
+#             step_height_range=(0.09, 0.11),
+#             step_width=0.30,
+#             platform_width=3.0,
+#             border_width=1.0,
+#             holes=False,
+#         ),
+#     },
+# )
+
+# 带 nose（踏步挑檐 / overhang）的台阶地形:
 # - 台阶高 10cm
 # - 台阶水平长度 30cm
+# - nose 水平挑出 4cm，竖向厚度 2.5cm
 # 说明:
-# 使用 MeshInvertedPyramidStairsTerrainCfg（与 Isaac Lab 默认 rough 配置一致）
-# 生成倒金字塔台阶，机器人可从低处向高处持续上台阶。
+# 使用 Robot Lab 自定义 Mesh*StairsWithNoseTerrainCfg，在 Isaac Lab 原始台阶 mesh
+# 基础上为每级踏步增加一圈可碰撞的薄唇边，作为新的地形配置项存在。
 DOG3_STAIRS_TERRAIN_CFG = terrain_gen.TerrainGeneratorCfg(
     size=(8.0, 8.0),
     border_width=20.0,
@@ -33,18 +65,22 @@ DOG3_STAIRS_TERRAIN_CFG = terrain_gen.TerrainGeneratorCfg(
     slope_threshold=0.75,
     use_cache=False,
     sub_terrains={
-        "stairs": terrain_gen.MeshInvertedPyramidStairsTerrainCfg(
+        "stairs_with_nose": robot_lab_terrain_gen.MeshInvertedPyramidStairsWithNoseTerrainCfg(
             proportion=1.0,
-            step_height_range=(0.09, 0.11),#(最初0.07-0.13)
+            step_height_range=(0.09, 0.11),  # (最初0.07-0.13)
             step_width=0.30,
+            nose_depth=0.04,
+            nose_height=0.025,
             platform_width=3.0,
             border_width=1.0,
             holes=False,
         ),
-        "stairs2": terrain_gen.MeshPyramidStairsTerrainCfg(
+        "stairs_down_with_nose": robot_lab_terrain_gen.MeshPyramidStairsWithNoseTerrainCfg(
             proportion=1.0,
             step_height_range=(0.09, 0.11),
             step_width=0.30,
+            nose_depth=0.04,
+            nose_height=0.025,
             platform_width=3.0,
             border_width=1.0,
             holes=False,
