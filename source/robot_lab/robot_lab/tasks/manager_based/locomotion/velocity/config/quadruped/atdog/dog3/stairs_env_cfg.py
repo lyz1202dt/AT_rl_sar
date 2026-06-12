@@ -226,7 +226,7 @@ class ATDogDog3StairsEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.flat_orientation_l2.weight = 0
         # 机身高度跟踪惩罚: 鼓励 base 高度接近 target_height。
         # 粗糙地形里若设太大，策略可能过于僵硬，不利于跨坎/踏石。
-        self.rewards.base_height_l2.weight = -200.0
+        self.rewards.base_height_l2.weight = -50.0
         # 目标机身高度（单位 m）。
         self.rewards.base_height_l2.params["target_height"] = 0.5
         # 指定用 base 刚体计算该项（避免多 body 统计带来歧义）。
@@ -323,6 +323,11 @@ class ATDogDog3StairsEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.feet_gait.params["synced_feet_pair_names"] = (("FL_calf", "RR_calf"), ("FR_calf", "RL_calf"))
         # 机身“向上”姿态奖励（保持重力反方向对齐），提升整体直立稳定性。
         self.rewards.upward.weight = 1.0
+
+        self.rewards.feet_distance_y_exp.weight = 5.0
+        self.rewards.feet_distance_y_exp.params["stance_width"] = 0.20
+        self.rewards.feet_distance_y_exp.params["std"] = 0.15
+        self.rewards.feet_distance_y_exp.params["asset_cfg"].body_names = ["FL_calf", "FR_calf", "RL_calf", "RR_calf"]
 
         # 将权重为0的奖励项禁用，减少无效计算与配置噪声
         if self.__class__.__name__ == "ATDogDog3StairsEnvCfg":
