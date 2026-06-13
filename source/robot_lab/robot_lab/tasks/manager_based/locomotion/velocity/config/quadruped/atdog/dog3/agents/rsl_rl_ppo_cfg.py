@@ -133,3 +133,12 @@ class ATDogDog3FlatPPORunnerCfg(ATDogDog3RoughPPORunnerCfg):
 
         self.max_iterations = 5000
         self.experiment_name = "atdog_dog3_flat"
+
+
+@configclass
+class ATDogDog3BarPPORunnerCfg(ATDogDog3RoughPPORunnerCfg):
+    def __post_init__(self):
+        super().__post_init__()
+
+        self.max_iterations = 5000
+        self.experiment_name = "atdog_dog3_bar"

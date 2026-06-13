@@ -151,3 +151,9 @@ class ATDogDog3StairsTrainerCfg(TrainerCfg):
 class ATDogDog3FlatTrainerCfg(ATDogDog3RoughTrainerCfg):
     max_iterations = 5000
     experiment_name = "atdog_dog3_flat"
+
+
+@dataclass
+class ATDogDog3BarTrainerCfg(ATDogDog3RoughTrainerCfg):
+    max_iterations = 5000
+    experiment_name = "atdog_dog3_bar"
