@@ -54,6 +54,17 @@ gym.register(
 )
 
 gym.register(
+    id="RobotLab-Isaac-Velocity-Bar-ATDog-Dog2-v0",
+    entry_point="isaaclab.envs:ManagerBasedRLEnv",
+    disable_env_checker=True,
+    kwargs={
+        "env_cfg_entry_point": f"{__name__}.bar_env_cfg:ATDogDog2BarEnvCfg",
+        "rsl_rl_cfg_entry_point": f"{agents.__name__}.rsl_rl_ppo_cfg:ATDogDog2BarPPORunnerCfg",
+        "cusrl_cfg_entry_point": f"{agents.__name__}.cusrl_ppo_cfg:ATDogDog2BarTrainerCfg",
+    },
+)
+
+gym.register(
     id="RobotLab-Isaac-Velocity-Slope-ATDog-Dog2-v0",
     entry_point="isaaclab.envs:ManagerBasedRLEnv",
     disable_env_checker=True,

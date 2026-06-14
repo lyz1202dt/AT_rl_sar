@@ -8,17 +8,17 @@
     name="base">
     <inertial>
       <origin
-        xyz="-0.002210 0.005849 0.081295"
+        xyz="0.006215 0.006398 0.083880"
         rpy="0 0 0" />
       <mass
-        value="6.33" />
+        value="5.852583" />
     <inertia
-        ixx="0.063881"
-        ixy="-0.000782"
-        ixz="-0.007309"
-        iyy="0.126370"
-        iyz="0.000031"
-        izz="0.161049"/>
+        ixx="0.037559"
+        ixy="0.000581"
+        ixz="-0.018267"
+        iyy="0.157576"
+        iyz="0.000054"
+        izz="0.154525"/>
     </inertial>
     <visual>
       <origin
@@ -26,7 +26,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dog2_arm/meshes/body_link.stl" />
+          filename="body_link.stl" />
       </geometry>
       <material
         name="">
@@ -40,7 +40,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dog2_arm/meshes/body_link.stl" />
+          filename="body_link.stl" />
       </geometry>
     </collision>
   </link>
@@ -66,7 +66,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dog2_arm/meshes/lf_link1.stl" />
+          filename="lf_link1.stl" />
       </geometry>
       <material
         name="">
@@ -80,7 +80,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dog2_arm/meshes/lf_link1.stl" />
+          filename="lf_link1.stl" />
       </geometry>
     </collision>
   </link>
@@ -126,7 +126,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dog2_arm/meshes/lf_link2.stl" />
+          filename="lf_link2.stl" />
       </geometry>
       <material
         name="">
@@ -140,7 +140,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dog2_arm/meshes/lf_link2.stl" />
+          filename="lf_link2.stl" />
       </geometry>
     </collision>
   </link>
@@ -184,7 +184,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dog2_arm/meshes/lf_link3.stl" />
+          filename="lf_link3.stl" />
       </geometry>
       <material
         name="">
@@ -198,7 +198,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dog2_arm/meshes/lf_link3.stl" />
+          filename="lf_link3.stl" />
       </geometry>
     </collision>
   </link>
@@ -242,7 +242,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dog2_arm/meshes/lf_link4.stl" />
+          filename="lf_link4.stl" />
       </geometry>
       <material
         name="">
@@ -256,7 +256,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dog2_arm/meshes/lf_link4.stl" />
+          filename="lf_link4.stl" />
       </geometry>
     </collision>
   </link>
@@ -295,7 +295,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dog2_arm/meshes/rf_link1.stl" />
+          filename="rf_link1.stl" />
       </geometry>
       <material
         name="">
@@ -309,7 +309,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dog2_arm/meshes/rf_link1.stl" />
+          filename="rf_link1.stl" />
       </geometry>
     </collision>
   </link>
@@ -354,7 +354,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dog2_arm/meshes/rf_link2.stl" />
+          filename="rf_link2.stl" />
       </geometry>
       <material
         name="">
@@ -368,7 +368,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dog2_arm/meshes/rf_link2.stl" />
+          filename="rf_link2.stl" />
       </geometry>
     </collision>
   </link>
@@ -412,7 +412,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dog2_arm/meshes/rf_link3.stl" />
+          filename="rf_link3.stl" />
       </geometry>
       <material
         name="">
@@ -426,7 +426,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dog2_arm/meshes/rf_link3.stl" />
+          filename="rf_link3.stl" />
       </geometry>
     </collision>
   </link>
@@ -470,7 +470,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dog2_arm/meshes/rf_link4.stl" />
+          filename="rf_link4.stl" />
       </geometry>
       <material
         name="">
@@ -484,7 +484,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dog2_arm/meshes/rf_link4.stl" />
+          filename="rf_link4.stl" />
       </geometry>
     </collision>
   </link>
@@ -523,7 +523,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dog2_arm/meshes/lb_link1.stl" />
+          filename="lb_link1.stl" />
       </geometry>
       <material
         name="">
@@ -537,7 +537,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dog2_arm/meshes/lb_link1.stl" />
+          filename="lb_link1.stl" />
       </geometry>
     </collision>
   </link>
@@ -582,7 +582,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dog2_arm/meshes/lb_link2.stl" />
+          filename="lb_link2.stl" />
       </geometry>
       <material
         name="">
@@ -596,7 +596,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dog2_arm/meshes/lb_link2.stl" />
+          filename="lb_link2.stl" />
       </geometry>
     </collision>
   </link>
@@ -640,7 +640,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dog2_arm/meshes/lb_link3.stl" />
+          filename="lb_link3.stl" />
       </geometry>
       <material
         name="">
@@ -654,7 +654,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dog2_arm/meshes/lb_link3.stl" />
+          filename="lb_link3.stl" />
       </geometry>
     </collision>
   </link>
@@ -698,7 +698,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dog2_arm/meshes/lb_link4.stl" />
+          filename="lb_link4.stl" />
       </geometry>
       <material
         name="">
@@ -712,7 +712,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dog2_arm/meshes/lb_link4.stl" />
+          filename="lb_link4.stl" />
       </geometry>
     </collision>
   </link>
@@ -751,7 +751,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dog2_arm/meshes/rb_link1.stl" />
+          filename="rb_link1.stl" />
       </geometry>
       <material
         name="">
@@ -765,7 +765,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dog2_arm/meshes/rb_link1.stl" />
+          filename="rb_link1.stl" />
       </geometry>
     </collision>
   </link>
@@ -810,7 +810,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dog2_arm/meshes/rb_link2.stl" />
+          filename="rb_link2.stl" />
       </geometry>
       <material
         name="">
@@ -824,7 +824,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dog2_arm/meshes/rb_link2.stl" />
+          filename="rb_link2.stl" />
       </geometry>
     </collision>
   </link>
@@ -868,7 +868,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dog2_arm/meshes/rb_link3.stl" />
+          filename="rb_link3.stl" />
       </geometry>
       <material
         name="">
@@ -882,7 +882,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dog2_arm/meshes/rb_link3.stl" />
+          filename="rb_link3.stl" />
       </geometry>
     </collision>
   </link>
@@ -926,7 +926,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dog2_arm/meshes/rb_link4.stl" />
+          filename="rb_link4.stl" />
       </geometry>
       <material
         name="">
@@ -940,7 +940,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://dog2_arm/meshes/rb_link4.stl" />
+          filename="rb_link4.stl" />
       </geometry>
     </collision>
   </link>
