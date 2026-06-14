@@ -19,6 +19,47 @@ if TYPE_CHECKING:
     from isaaclab.envs import ManagerBasedRLEnv
 
 
+def _is_direction_scalar(direction) -> bool:
+    return isinstance(direction, str | int | float)
+
+
+def _direction_to_sign(direction, param_name: str) -> float:
+    if isinstance(direction, str):
+        normalized_direction = direction.lower().replace("-", "_").replace(" ", "_")
+        if normalized_direction in ("same", "same_direction", "same_rotation", "in_phase"):
+            return 1.0
+        if normalized_direction in ("opposite", "opposite_direction", "opposite_rotation", "reverse", "anti_phase"):
+            return -1.0
+        raise ValueError(
+            f"Unsupported direction '{direction}' in '{param_name}'. Use 'same'/'opposite' or +1/-1."
+        )
+
+    sign = float(direction)
+    if sign == 0.0:
+        raise ValueError(f"Direction signs in '{param_name}' must be non-zero.")
+    return 1.0 if sign > 0.0 else -1.0
+
+
+def _expand_direction_signs(directions, count: int, param_name: str) -> list[float]:
+    if _is_direction_scalar(directions):
+        return [_direction_to_sign(directions, param_name)] * count
+
+    direction_values = list(directions)
+    if len(direction_values) == 1 and count != 1:
+        return [_direction_to_sign(direction_values[0], param_name)] * count
+    if len(direction_values) != count:
+        raise ValueError(f"'{param_name}' expected {count} direction values, got {len(direction_values)}.")
+    return [_direction_to_sign(direction, param_name) for direction in direction_values]
+
+
+def _direction_entry(directions, index: int, param_name: str):
+    if _is_direction_scalar(directions):
+        return directions
+    if index >= len(directions):
+        raise ValueError(f"'{param_name}' expected an entry for group {index}.")
+    return directions[index]
+
+
 def track_lin_vel_xy_exp(
     env: ManagerBasedRLEnv, std: float, command_name: str, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")
 ) -> torch.Tensor:
@@ -252,7 +293,12 @@ class GaitReward(ManagerTermBase):
         return torch.exp(-(se_act_0 + se_act_1) / self.std)
 
 
-def joint_mirror(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg, mirror_joints: list[list[str]]) -> torch.Tensor:
+def joint_mirror(
+    env: ManagerBasedRLEnv,
+    asset_cfg: SceneEntityCfg,
+    mirror_joints: list[list[str]],
+    mirror_joint_directions: list | None = None,
+) -> torch.Tensor:
     # extract the used quantities (to enable type-hinting)
     asset: Articulation = env.scene[asset_cfg.name]
     if not hasattr(env, "joint_mirror_joints_cache") or env.joint_mirror_joints_cache is None:
@@ -262,13 +308,31 @@ def joint_mirror(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg, mirror_joint
         ]
     reward = torch.zeros(env.num_envs, device=env.device)
     # Iterate over all joint pairs
-    for joint_pair in env.joint_mirror_joints_cache:
-        # Compare magnitudes so mirrored joints are encouraged to move with similar amplitude
+    for pair_index, joint_pair in enumerate(env.joint_mirror_joints_cache):
+        joint_pos_0 = asset.data.joint_pos[:, joint_pair[0][0]]
+        joint_pos_1 = asset.data.joint_pos[:, joint_pair[1][0]]
+        if joint_pos_0.shape[-1] != joint_pos_1.shape[-1]:
+            raise ValueError(
+                f"mirror_joints pair {pair_index} matched {joint_pos_0.shape[-1]} and {joint_pos_1.shape[-1]} joints."
+            )
+
+        if mirror_joint_directions is None:
+            joint_pos_0 = torch.abs(joint_pos_0)
+            joint_pos_1 = torch.abs(joint_pos_1)
+        else:
+            direction_signs = torch.tensor(
+                _expand_direction_signs(
+                    _direction_entry(mirror_joint_directions, pair_index, "mirror_joint_directions"),
+                    joint_pos_1.shape[-1],
+                    "mirror_joint_directions",
+                ),
+                device=env.device,
+                dtype=joint_pos_1.dtype,
+            )
+            joint_pos_1 = joint_pos_1 * direction_signs.unsqueeze(0)
+
         diff = torch.sum(
-            torch.square(
-                torch.abs(asset.data.joint_pos[:, joint_pair[0][0]])
-                - torch.abs(asset.data.joint_pos[:, joint_pair[1][0]])
-            ),
+            torch.square(joint_pos_0 - joint_pos_1),
             dim=-1,
         )
         reward += diff
@@ -277,7 +341,12 @@ def joint_mirror(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg, mirror_joint
     return reward
 
 
-def action_mirror(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg, mirror_joints: list[list[str]]) -> torch.Tensor:
+def action_mirror(
+    env: ManagerBasedRLEnv,
+    asset_cfg: SceneEntityCfg,
+    mirror_joints: list[list[str]],
+    mirror_joint_directions: list | None = None,
+) -> torch.Tensor:
     # extract the used quantities (to enable type-hinting)
     asset: Articulation = env.scene[asset_cfg.name]
     if not hasattr(env, "action_mirror_joints_cache") or env.action_mirror_joints_cache is None:
@@ -287,13 +356,31 @@ def action_mirror(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg, mirror_join
         ]
     reward = torch.zeros(env.num_envs, device=env.device)
     # Iterate over all joint pairs
-    for joint_pair in env.action_mirror_joints_cache:
-        # Calculate the difference for each pair and add to the total reward
+    for pair_index, joint_pair in enumerate(env.action_mirror_joints_cache):
+        action_0 = env.action_manager.action[:, joint_pair[0][0]]
+        action_1 = env.action_manager.action[:, joint_pair[1][0]]
+        if action_0.shape[-1] != action_1.shape[-1]:
+            raise ValueError(
+                f"mirror_joints pair {pair_index} matched {action_0.shape[-1]} and {action_1.shape[-1]} joints."
+            )
+
+        if mirror_joint_directions is None:
+            action_0 = torch.abs(action_0)
+            action_1 = torch.abs(action_1)
+        else:
+            direction_signs = torch.tensor(
+                _expand_direction_signs(
+                    _direction_entry(mirror_joint_directions, pair_index, "mirror_joint_directions"),
+                    action_1.shape[-1],
+                    "mirror_joint_directions",
+                ),
+                device=env.device,
+                dtype=action_1.dtype,
+            )
+            action_1 = action_1 * direction_signs.unsqueeze(0)
+
         diff = torch.sum(
-            torch.square(
-                torch.abs(env.action_manager.action[:, joint_pair[0][0]])
-                - torch.abs(env.action_manager.action[:, joint_pair[1][0]])
-            ),
+            torch.square(action_0 - action_1),
             dim=-1,
         )
         reward += diff
@@ -302,7 +389,12 @@ def action_mirror(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg, mirror_join
     return reward
 
 
-def action_sync(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg, joint_groups: list[list[str]]) -> torch.Tensor:
+def action_sync(
+    env: ManagerBasedRLEnv,
+    asset_cfg: SceneEntityCfg,
+    joint_groups: list[list[str]],
+    joint_group_directions: list | None = None,
+) -> torch.Tensor:
     # extract the used quantities (to enable type-hinting)
     asset: Articulation = env.scene[asset_cfg.name]
 
@@ -314,14 +406,28 @@ def action_sync(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg, joint_groups:
 
     reward = torch.zeros(env.num_envs, device=env.device)
     # Iterate over each joint group
-    for joint_group in env.action_sync_joint_cache:
+    for group_index, joint_group in enumerate(env.action_sync_joint_cache):
         if len(joint_group) < 2:
             continue  # need at least 2 joints to compare
 
-        # Get absolute actions for all joints in this group
-        actions = torch.stack(
-            [torch.abs(env.action_manager.action[:, joint[0]]) for joint in joint_group], dim=1
-        )  # shape: (num_envs, num_joints_in_group)
+        if joint_group_directions is None:
+            # Compare magnitudes for backward compatibility with existing configs.
+            actions = torch.stack(
+                [torch.abs(env.action_manager.action[:, joint[0]]) for joint in joint_group], dim=1
+            )  # shape: (num_envs, num_joints_in_group)
+        else:
+            direction_signs = _expand_direction_signs(
+                _direction_entry(joint_group_directions, group_index, "joint_group_directions"),
+                len(joint_group),
+                "joint_group_directions",
+            )
+            actions = torch.stack(
+                [
+                    env.action_manager.action[:, joint[0]] * direction_sign
+                    for joint, direction_sign in zip(joint_group, direction_signs)
+                ],
+                dim=1,
+            )  # shape: (num_envs, num_joints_in_group)
 
         # Calculate mean action for each environment
         mean_actions = torch.mean(actions, dim=1, keepdim=True)

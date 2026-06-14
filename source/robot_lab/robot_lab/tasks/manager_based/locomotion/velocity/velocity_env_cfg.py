@@ -474,6 +474,7 @@ class RewardsCfg:
         params={
             "asset_cfg": SceneEntityCfg("robot"),
             "mirror_joints": [["FR.*", "RL.*"], ["FL.*", "RR.*"]],
+            "mirror_joint_directions": None,
         },
     )
 
@@ -483,6 +484,7 @@ class RewardsCfg:
         params={
             "asset_cfg": SceneEntityCfg("robot"),
             "mirror_joints": [["FR.*", "RL.*"], ["FL.*", "RR.*"]],
+            "mirror_joint_directions": None,
         },
     )
 
@@ -496,6 +498,7 @@ class RewardsCfg:
                 ["FR_thigh_joint", "FL_thigh_joint", "RL_thigh_joint", "RR_thigh_joint"],
                 ["FR_calf_joint", "FL_calf_joint", "RL_calf_joint", "RR_calf_joint"],
             ],
+            "joint_group_directions": None,
         },
     )
 
