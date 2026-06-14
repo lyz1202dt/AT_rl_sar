@@ -92,13 +92,22 @@ cd /workspace/isaaclab_extension_template
 
 
 /workspace/isaaclab/isaaclab.sh -p /workspace/isaaclab_extension_template/scripts/reinforcement_learning/rsl_rl/train.py \
-  --task=RobotLab-Isaac-Velocity-Rough-ATDog-Dog3-Arm-v0 \
-  --num_envs=25000 \
+  --task=RobotLab-Isaac-Velocity-Rough-ATDog-Dog2-Arm-v0 \
+  --num_envs=6000 \
   --max_iterations=2000\
   --headless \
   --resume \
-  --load_run=2026-06-10_22-03-55 \
-  --checkpoint=model_36987.pt
+  --load_run=2026-06-14_11-56-28 \
+  --checkpoint=model_41599.pt
+
+/workspace/isaaclab/isaaclab.sh -p /workspace/isaaclab_extension_template/scripts/reinforcement_learning/rsl_rl/train.py \
+  --task=RobotLab-Isaac-Velocity-Slope-ATDog-Dog3-v0 \
+  --num_envs=4000 \
+  --max_iterations=2000\
+  --headless \
+  --resume \
+  --load_run=2026-06-14_00-27-05 \
+  --checkpoint=model_11400.pt 
 
 ```
 
@@ -116,7 +125,7 @@ cd /workspace/isaaclab_extension_template
 
 /workspace/isaaclab/isaaclab.sh -p scripts/reinforcement_learning/rsl_rl/play.py \
   --task=RobotLab-Isaac-Velocity-Rough-ATDog-Dog2-Arm-v0 \
-  --checkpoint=/workspace/isaaclab_extension_template/logs/rsl_rl/atdog_dog2_arm_rough/2026-06-14_03-42-01/model_41599.pt \
+  --checkpoint=/workspace/isaaclab_extension_template/logs/rsl_rl/atdog_dog2_arm_rough/2026-06-14_13-10-55/model_43598.pt \
   --num_envs=1\
   --headless
 
@@ -132,6 +141,12 @@ cd /workspace/isaaclab_extension_template
   --task=RobotLab-Isaac-Velocity-Flat-ATDog-Dog2-v0 \
   --checkpoint=/workspace/isaaclab_extension_template/logs/rsl_rl/atdog_dog_flat/2026-05-31_14-32-45/model_4999.pt\
   --num_envs=10
+
+/workspace/isaaclab/isaaclab.sh -p scripts/reinforcement_learning/rsl_rl/play.py \
+  --task=RobotLab-Isaac-Velocity-Slope-ATDog-Dog3-v0 \
+  --checkpoint=/workspace/isaaclab_extension_template/logs/rsl_rl/atdog_dog3_slope/2026-06-14_01-54-17/model_13399.pt \
+  --num_envs=1\
+  --headless
 
 ```
 
@@ -150,6 +165,8 @@ scp -P 3022 sw@shenweitechnology.com:/home/sw/code/AT_rl_sar/logs/rsl_rl/atdog_d
 
 ```bash
 docker cp robot-lab:/workspace/isaaclab_extension_template/logs/rsl_rl/atdog_dog2_arm_rough/2026-06-10_11-04-22  robot-lab:/workspace/isaaclab_extension_template/logs/rsl_rl/atdog_dog3_arm_rough/
+
+docker cp ~/桌面/2026-06-12_13-55-44 robot-lab:/workspace/isaaclab_extension_template/logs/rsl_rl/atdog_dog2_arm_rough/
 
 
 cp atdog_dog2_arm_rough/2026-06-10_11-04-22  atdog_dog3_arm_rough/
