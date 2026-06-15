@@ -233,7 +233,7 @@ class ATDogDog3RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
 
         # Action penalties
         # 动作变化率惩罚，抑制相邻时刻动作突变，提升控制平滑性与可部署性。
-        self.rewards.action_rate_l2.weight = -0.6
+        self.rewards.action_rate_l2.weight = -0.8
 
         # Contact sensor
         # 非足端 body 接触惩罚（如躯干/大腿触地），鼓励“只让脚接触地面”。
@@ -275,7 +275,7 @@ class ATDogDog3RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.feet_slide.params["asset_cfg"].body_names = [self.foot_link_name]
         # 足端绝对高度目标项（常用于抬脚高度约束），当前关闭。
         self.rewards.feet_height.weight = -300
-        self.rewards.feet_height.params["target_height"] = 0.15
+        self.rewards.feet_height.params["target_height"] = 0.30
         self.rewards.feet_height.params["asset_cfg"].body_names = [self.foot_link_name]
         # 相对机身的足端高度惩罚（body frame），约束抬腿轨迹不过高/不过低。
         # target_height=-0.2 表示期望脚位于机身下方一定距离处。
@@ -283,13 +283,13 @@ class ATDogDog3RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.feet_height_body.params["target_height"] = -0.15
         self.rewards.feet_height_body.params["asset_cfg"].body_names = [self.foot_link_name]
         # 步态同步奖励: 鼓励对角腿成对同步（trot 风格）。
-        self.rewards.feet_gait.weight = 0.5
+        self.rewards.feet_gait.weight = 0.0
         self.rewards.feet_gait.params["synced_feet_pair_names"] = (("FL_calf", "RR_calf"), ("FR_calf", "RL_calf"))
         # 机身“向上”姿态奖励（保持重力反方向对齐），提升整体直立稳定性。
         self.rewards.upward.weight = 8.0
 
         self.rewards.feet_distance_y_exp.weight = 4.0
-        self.rewards.feet_distance_y_exp.params["stance_width"] = 0.14
+        self.rewards.feet_distance_y_exp.params["stance_width"] = 0.28
         self.rewards.feet_distance_y_exp.params["std"] = 0.15
         self.rewards.feet_distance_y_exp.params["asset_cfg"].body_names = ["FL_calf", "FR_calf", "RL_calf", "RR_calf"]
 

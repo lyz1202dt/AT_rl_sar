@@ -232,7 +232,7 @@ class ATDogDog2ArmRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         # 关节位置正则惩罚（通常相对默认姿态/安全姿态），抑制异常构型。
         self.rewards.joint_pos_penalty.weight = -2.25
         # 镜像对称惩罚: 约束对角腿运动统计相近，减少“偏腿”步态。
-        self.rewards.joint_mirror.weight = -0.05
+        self.rewards.joint_mirror.weight = -0.01
         # 指定镜像关节对:
         # - FR 对 RL
         # - FL 对 RR
@@ -264,12 +264,12 @@ class ATDogDog2ArmRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
 
         # Others
         # 足端腾空时间奖励: 鼓励形成明确摆动相，避免拖脚。
-        self.rewards.feet_air_time.weight = 6.0
+        self.rewards.feet_air_time.weight = 3.0
         # 只在腾空时间超过阈值时开始计入（单位 s），避免“微小离地”刷分。
         self.rewards.feet_air_time.params["threshold"] = 0.1
         self.rewards.feet_air_time.params["sensor_cfg"].body_names = [self.foot_link_name]
         # 腾空时间方差惩罚: 抑制四腿步态节律差异过大，提升步态均匀性。
-        self.rewards.feet_air_time_variance.weight = -1.0
+        self.rewards.feet_air_time_variance.weight = -0.2
         self.rewards.feet_air_time_variance.params["sensor_cfg"].body_names = [self.foot_link_name]
         # 足接触奖励（可用于鼓励稳定支撑），当前关闭。
         self.rewards.feet_contact.weight = 0.001
@@ -285,8 +285,8 @@ class ATDogDog2ArmRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.feet_slide.params["sensor_cfg"].body_names = [self.foot_link_name]
         self.rewards.feet_slide.params["asset_cfg"].body_names = [self.foot_link_name]
         # 足端绝对高度目标项（常用于抬脚高度约束），当前关闭。
-        self.rewards.feet_height.weight = -20.0
-        self.rewards.feet_height.params["target_height"] = 0.15
+        self.rewards.feet_height.weight = -2.0
+        self.rewards.feet_height.params["target_height"] = 0.1
         self.rewards.feet_height.params["asset_cfg"].body_names = [self.foot_link_name]
         # 相对机身的足端高度惩罚（body frame），约束抬腿轨迹不过高/不过低。
         # target_height=-0.2 表示期望脚位于机身下方一定距离处。
@@ -294,7 +294,7 @@ class ATDogDog2ArmRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.feet_height_body.params["target_height"] = -0.22
         self.rewards.feet_height_body.params["asset_cfg"].body_names = [self.foot_link_name]
         # 步态同步奖励: 鼓励对角腿成对同步（trot 风格）。
-        self.rewards.feet_gait.weight = 1.5
+        self.rewards.feet_gait.weight = 0.2
         self.rewards.feet_gait.params["synced_feet_pair_names"] = (("FL_calf", "RR_calf"), ("FR_calf", "RL_calf"))
         # 机身“向上”姿态奖励（保持重力反方向对齐），提升整体直立稳定性。
         self.rewards.upward.weight = 1.5
