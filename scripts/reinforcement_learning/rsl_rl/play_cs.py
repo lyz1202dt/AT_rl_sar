@@ -13,6 +13,7 @@
 import argparse
 import os
 import sys
+from pathlib import Path
 
 from isaaclab.app import AppLauncher
 
@@ -92,9 +93,16 @@ from isaaclab_tasks.utils.hydra import hydra_task_config
 import robot_lab.tasks  # noqa: F401
 
 
+PROJECT_ROOT = Path(__file__).resolve().parents[3]
+
+
 @hydra_task_config(args_cli.task, args_cli.agent)
 def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agent_cfg: RslRlBaseRunnerCfg):
     """Play with RSL-RL agent."""
+    map_path = Path(args_cli.map)
+    if not map_path.is_absolute():
+        map_path = (PROJECT_ROOT / map_path).resolve()
+
     # grab task name for checkpoint path
     task_name = args_cli.task.split(":")[-1]
 
@@ -111,7 +119,7 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
     env_cfg.scene.terrain = TerrainImporterCfg(
         prim_path="/World/ground",
         terrain_type="usd",
-        usd_path=args_cli.map,
+        usd_path=str(map_path),
         debug_vis=False,
     )
     env_cfg.scene.sky_light = None
