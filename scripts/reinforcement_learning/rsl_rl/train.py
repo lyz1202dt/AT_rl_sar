@@ -99,6 +99,62 @@ torch.backends.cudnn.allow_tf32 = True
 torch.backends.cudnn.deterministic = False
 torch.backends.cudnn.benchmark = False
 
+def load_compatible_checkpoint(runner, resume_path, load_optimizer=False):
+    loaded_dict = torch.load(resume_path, map_location="cpu")
+
+    model = getattr(runner.alg, "policy", None)
+    if model is None:
+        model = getattr(runner.alg, "actor_critic", None)
+    if model is None:
+        raise AttributeError("Cannot find policy or actor_critic on runner.alg")
+
+    if "model_state_dict" not in loaded_dict:
+        raise KeyError(f"Checkpoint at '{resume_path}' does not contain 'model_state_dict'. "
+                       f"Available keys: {list(loaded_dict.keys())}")
+
+    current_state = model.state_dict()
+    loaded_state = loaded_dict["model_state_dict"]
+
+    compatible_state = {}
+    skipped = []
+
+    for key, value in loaded_state.items():
+        if key in current_state and current_state[key].shape == value.shape:
+            compatible_state[key] = value
+        else:
+            current_shape = current_state[key].shape if key in current_state else None
+            skipped.append((key, tuple(value.shape), tuple(current_shape) if current_shape is not None else None))
+
+    current_state.update(compatible_state)
+    model.load_state_dict(current_state, strict=False)
+
+    print(f"[INFO] Compatible params loaded: {len(compatible_state)}")
+    if skipped:
+        print("[INFO] Skipped incompatible params:")
+        for key, old_shape, new_shape in skipped:
+            print(f"  - {key}: ckpt={old_shape}, current={new_shape}")
+
+    if load_optimizer and "optimizer_state_dict" in loaded_dict:
+        try:
+            runner.alg.optimizer.load_state_dict(loaded_dict["optimizer_state_dict"])
+            print("[INFO] Optimizer state loaded.")
+        except Exception as e:
+            print(f"[WARN] Optimizer state not loaded: {e}")
+
+    if hasattr(runner, "current_learning_iteration") and "iter" in loaded_dict:
+        runner.current_learning_iteration = loaded_dict["iter"]
+
+    if hasattr(runner.alg, "amp_normalizer") and "amp_normalizer" in loaded_dict:
+        runner.alg.amp_normalizer = loaded_dict["amp_normalizer"]
+
+    if hasattr(runner.alg, "discriminator") and "discriminator_state_dict" in loaded_dict:
+        try:
+            runner.alg.discriminator.load_state_dict(loaded_dict["discriminator_state_dict"], strict=False)
+        except Exception as e:
+            print(f"[WARN] Discriminator state not loaded: {e}")
+
+    return loaded_dict.get("infos", None)
+
 
 @hydra_task_config(args_cli.task, args_cli.agent)
 def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agent_cfg: RslRlBaseRunnerCfg):
@@ -191,9 +247,13 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
     runner.add_git_repo_to_log(__file__)
     # load the checkpoint
     if agent_cfg.resume or agent_cfg.algorithm.class_name == "Distillation":
-        print(f"[INFO]: Loading model checkpoint from: {resume_path}")
-        # load previously trained model
-        runner.load(resume_path)
+      print(f"[INFO]: Loading model checkpoint from: {resume_path}")
+      try:
+          runner.load(resume_path)
+      except RuntimeError as e:
+          print(f"[WARN] Strict checkpoint loading failed: {e}")
+          print("[INFO] Falling back to compatible checkpoint loading.")
+          load_compatible_checkpoint(runner, resume_path, load_optimizer=False)
 
     # dump the configuration into log-directory
     dump_yaml(os.path.join(log_dir, "params", "env.yaml"), env_cfg)
