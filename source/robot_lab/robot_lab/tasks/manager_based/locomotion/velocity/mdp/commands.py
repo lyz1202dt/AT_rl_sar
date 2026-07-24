@@ -21,6 +21,35 @@ class UniformThresholdVelocityCommand(mdp.UniformVelocityCommand):
     cfg: mdp.UniformThresholdVelocityCommandCfg
     """The configuration of the command generator."""
 
+    def __init__(self, cfg: mdp.UniformThresholdVelocityCommandCfg, env: ManagerBasedEnv):
+        super().__init__(cfg, env)
+        self.metrics["error_vel_x"] = torch.zeros(self.num_envs, device=self.device)
+        self.metrics["error_vel_y"] = torch.zeros(self.num_envs, device=self.device)
+        self.metrics["error_vel_z"] = torch.zeros(self.num_envs, device=self.device)
+        self.metrics["error_vel_dir"] = torch.zeros(self.num_envs, device=self.device)
+
+    def _update_metrics(self):
+        super()._update_metrics()
+
+        max_command_time = self.cfg.resampling_time_range[1]
+        max_command_step = max_command_time / self._env.step_dt
+
+        lin_vel_error_b = self.vel_command_b[:, :2] - self.robot.data.root_lin_vel_b[:, :2]
+        self.metrics["error_vel_x"] += torch.abs(lin_vel_error_b[:, 0]) / max_command_step
+        self.metrics["error_vel_y"] += torch.abs(lin_vel_error_b[:, 1]) / max_command_step
+        self.metrics["error_vel_z"] += torch.abs(self.robot.data.root_lin_vel_b[:, 2]) / max_command_step
+
+        command_heading = torch.atan2(self.vel_command_b[:, 1], self.vel_command_b[:, 0])
+        actual_heading = torch.atan2(self.robot.data.root_lin_vel_b[:, 1], self.robot.data.root_lin_vel_b[:, 0])
+        command_speed = torch.linalg.norm(self.vel_command_b[:, :2], dim=-1)
+        actual_speed = torch.linalg.norm(self.robot.data.root_lin_vel_b[:, :2], dim=-1)
+        valid_mask = (command_speed > 1e-6) & (actual_speed > 1e-6)
+        direction_error = torch.zeros(self.num_envs, device=self.device)
+        if valid_mask.any():
+            heading_delta = command_heading[valid_mask] - actual_heading[valid_mask]
+            direction_error[valid_mask] = torch.abs(torch.atan2(torch.sin(heading_delta), torch.cos(heading_delta)))
+        self.metrics["error_vel_dir"] += direction_error / max_command_step
+
     def _resample_command(self, env_ids: Sequence[int]):
         super()._resample_command(env_ids)
         # set small commands to zero
