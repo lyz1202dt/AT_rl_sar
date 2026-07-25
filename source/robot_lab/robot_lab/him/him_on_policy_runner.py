@@ -36,6 +36,12 @@ class HIMOnPolicyRunner:
             self.env.num_actions,
             **self.policy_cfg,
         )
+        print(
+            "[INFO] HIM observation layout: "
+            f"actor_obs={self.env.num_obs}, one_step_obs={self.env.num_one_step_obs}, "
+            f"history={actor_critic.history_size}, critic_obs={num_critic_obs}, "
+            f"vel_slice={actor_critic.vel_slice}, target_slice={actor_critic.target_slice}"
+        )
         self.alg = HIMPPO(actor_critic, device=self.device, **self.alg_cfg)
         self.alg.init_storage(
             self.env.num_envs,
@@ -70,10 +76,12 @@ class HIMOnPolicyRunner:
             num_critic_obs,
             "estimator_target_slice",
         )
-        if vel_slice is not None:
-            self.policy_cfg["estimator_vel_slice"] = vel_slice
-        if target_slice is not None:
-            self.policy_cfg["estimator_target_slice"] = target_slice
+        if vel_slice is None:
+            raise ValueError("HIM requires a base_lin_vel term in the critic observation group.")
+        if target_slice is None:
+            raise ValueError("HIM could not infer a contiguous estimator target from policy/critic observations.")
+        self.policy_cfg["estimator_vel_slice"] = vel_slice
+        self.policy_cfg["estimator_target_slice"] = target_slice
 
     @staticmethod
     def _is_valid_slice(obs_slice: tuple[int, int] | list[int] | None, upper_bound: int) -> bool:
@@ -91,15 +99,20 @@ class HIMOnPolicyRunner:
         upper_bound: int,
         slice_name: str,
     ) -> tuple[int, int] | None:
+        if self._is_valid_slice(inferred_slice, upper_bound):
+            resolved_slice = (int(inferred_slice[0]), int(inferred_slice[1]))
+            configured_valid = self._is_valid_slice(configured_slice, upper_bound)
+            configured_value = None
+            if configured_valid:
+                configured_value = (int(configured_slice[0]), int(configured_slice[1]))
+            if configured_slice is not None and configured_value != resolved_slice:
+                print(
+                    f"[WARN] HIM {slice_name}={tuple(configured_slice)} does not match the environment layout. "
+                    f"Using inferred slice {resolved_slice}."
+                )
+            return resolved_slice
         if self._is_valid_slice(configured_slice, upper_bound):
             return (int(configured_slice[0]), int(configured_slice[1]))
-        if self._is_valid_slice(inferred_slice, upper_bound):
-            if configured_slice is not None:
-                print(
-                    f"[WARN] HIM {slice_name}={tuple(configured_slice)} is invalid for critic dim {upper_bound}. "
-                    f"Using inferred slice {inferred_slice}."
-                )
-            return inferred_slice
         if configured_slice is not None:
             raise ValueError(f"Invalid HIM {slice_name}={tuple(configured_slice)} for critic dim {upper_bound}.")
         return None
@@ -112,6 +125,7 @@ class HIMOnPolicyRunner:
         payload = {
             "model_state_dict": self.alg.actor_critic.state_dict(),
             "optimizer_state_dict": self.alg.optimizer.state_dict(),
+            "estimator_optimizer_state_dict": self.alg.actor_critic.estimator.optimizer.state_dict(),
             "iter": self.current_learning_iteration,
             "infos": {
                 "num_one_step_obs": self.alg.actor_critic.num_one_step_obs,
@@ -123,13 +137,44 @@ class HIMOnPolicyRunner:
 
     def load(self, path: str):
         loaded_dict = torch.load(path, map_location=self.device)
-        self.alg.actor_critic.load_state_dict(loaded_dict["model_state_dict"], strict=False)
+        self._load_model_state(loaded_dict["model_state_dict"])
         if "optimizer_state_dict" in loaded_dict:
             try:
                 self.alg.optimizer.load_state_dict(loaded_dict["optimizer_state_dict"])
-            except ValueError:
-                pass
+            except (RuntimeError, ValueError):
+                print("[WARN] HIM optimizer state is incompatible with the current model. Skipping optimizer load.")
+        if "estimator_optimizer_state_dict" in loaded_dict:
+            try:
+                self.alg.actor_critic.estimator.optimizer.load_state_dict(
+                    loaded_dict["estimator_optimizer_state_dict"]
+                )
+            except (RuntimeError, ValueError):
+                print("[WARN] HIM estimator optimizer state is incompatible. Skipping estimator optimizer load.")
+        else:
+            print("[WARN] HIM checkpoint has no estimator optimizer state. Estimator optimizer starts fresh.")
         self.current_learning_iteration = int(loaded_dict.get("iter", 0))
+
+    def _load_model_state(self, loaded_state: dict[str, torch.Tensor]):
+        current_state = self.alg.actor_critic.state_dict()
+        compatible_state = {}
+        skipped = []
+        for key, value in loaded_state.items():
+            current_value = current_state.get(key)
+            if current_value is not None and current_value.shape == value.shape:
+                compatible_state[key] = value
+            else:
+                current_shape = None if current_value is None else tuple(current_value.shape)
+                skipped.append((key, tuple(value.shape), current_shape))
+        current_state.update(compatible_state)
+        self.alg.actor_critic.load_state_dict(current_state, strict=False)
+        if skipped:
+            print(f"[WARN] Skipped {len(skipped)} incompatible HIM checkpoint tensors:")
+            for key, checkpoint_shape, current_shape in skipped[:20]:
+                print(f"  - {key}: checkpoint={checkpoint_shape}, current={current_shape}")
+            if len(skipped) > 20:
+                print(f"  - ... {len(skipped) - 20} more tensors skipped")
+        if not compatible_state:
+            raise RuntimeError("No compatible HIM model tensors were found in the checkpoint.")
 
     def get_inference_policy(self, device: str | None = None):
         if device is None:
@@ -278,6 +323,11 @@ class HIMOnPolicyRunner:
             self.writer.add_scalar("Loss/swap", mean_swap_loss, iteration)
             self.writer.add_scalar("Loss/entropy", mean_entropy_loss, iteration)
             self.writer.add_scalar("Loss/learning_rate", self.alg.learning_rate, iteration)
+            self.writer.add_scalar(
+                "Loss/estimator_learning_rate",
+                self.alg.actor_critic.estimator.learning_rate,
+                iteration,
+            )
             self.writer.add_scalar("Policy/mean_noise_std", mean_noise_std, iteration)
             self.writer.add_scalar("Perf/fps", fps, iteration)
             self.writer.add_scalar("Perf/collection_time", collection_time, iteration)

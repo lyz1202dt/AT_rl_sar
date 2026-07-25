@@ -13,6 +13,7 @@
 import argparse
 import os
 import sys
+from pathlib import Path
 
 from isaaclab.app import AppLauncher
 
@@ -95,6 +96,21 @@ from robot_lab.him import (
 )
 import robot_lab.tasks  # noqa: F401
 
+PROJECT_ROOT = Path(__file__).resolve().parents[3]
+
+
+def apply_him_observation_history(env_cfg, agent_cfg):
+    if agent_cfg.class_name != "HIMOnPolicyRunner":
+        return
+    policy_obs_cfg = getattr(getattr(env_cfg, "observations", None), "policy", None)
+    if policy_obs_cfg is None:
+        return
+    configured_history = int(getattr(policy_obs_cfg, "history_length", 0) or 0)
+    if configured_history <= 1:
+        history_length = int(getattr(agent_cfg.policy, "history_length", 6))
+        policy_obs_cfg.history_length = history_length
+        policy_obs_cfg.flatten_history_dim = True
+
 
 @hydra_task_config(args_cli.task, args_cli.agent)
 def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agent_cfg: RslRlBaseRunnerCfg):
@@ -105,6 +121,7 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
     # override configurations with non-hydra CLI arguments
     agent_cfg: RslRlBaseRunnerCfg = cli_args.update_rsl_rl_cfg(agent_cfg, args_cli)
     env_cfg.scene.num_envs = args_cli.num_envs if args_cli.num_envs is not None else 64
+    apply_him_observation_history(env_cfg, agent_cfg)
 
     # set the environment seed
     # note: certain randomizations occur in the environment initialization so we set the seed here
@@ -141,8 +158,8 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
         )
 
     # specify directory for logging experiments
-    log_root_path = os.path.join("logs", "rsl_rl", agent_cfg.experiment_name)
-    log_root_path = os.path.abspath(log_root_path)
+    log_root_path = PROJECT_ROOT / "logs" / "rsl_rl" / agent_cfg.experiment_name
+    log_root_path = str(log_root_path.resolve())
     print(f"[INFO] Loading experiment from directory: {log_root_path}")
     if args_cli.use_pretrained_checkpoint:
         try:

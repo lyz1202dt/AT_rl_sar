@@ -13,6 +13,7 @@
 import argparse
 import os
 import sys
+from pathlib import Path
 
 from isaaclab.app import AppLauncher
 
@@ -100,6 +101,21 @@ torch.backends.cudnn.allow_tf32 = True
 torch.backends.cudnn.deterministic = False
 torch.backends.cudnn.benchmark = False
 
+PROJECT_ROOT = Path(__file__).resolve().parents[3]
+
+
+def apply_him_observation_history(env_cfg, agent_cfg):
+    if agent_cfg.class_name != "HIMOnPolicyRunner":
+        return
+    policy_obs_cfg = getattr(getattr(env_cfg, "observations", None), "policy", None)
+    if policy_obs_cfg is None:
+        return
+    configured_history = int(getattr(policy_obs_cfg, "history_length", 0) or 0)
+    if configured_history <= 1:
+        history_length = int(getattr(agent_cfg.policy, "history_length", 6))
+        policy_obs_cfg.history_length = history_length
+        policy_obs_cfg.flatten_history_dim = True
+
 def load_compatible_checkpoint(runner, resume_path, load_optimizer=False):
     loaded_dict = torch.load(resume_path, map_location="cpu")
 
@@ -166,6 +182,7 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
     agent_cfg.max_iterations = (
         args_cli.max_iterations if args_cli.max_iterations is not None else agent_cfg.max_iterations
     )
+    apply_him_observation_history(env_cfg, agent_cfg)
 
     # set the environment seed
     # note: certain randomizations occur in the environment initialization so we set the seed here
@@ -189,8 +206,8 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
         agent_cfg.seed = seed
 
     # specify directory for logging experiments
-    log_root_path = os.path.join("logs", "rsl_rl", agent_cfg.experiment_name)
-    log_root_path = os.path.abspath(log_root_path)
+    log_root_path = PROJECT_ROOT / "logs" / "rsl_rl" / agent_cfg.experiment_name
+    log_root_path = str(log_root_path.resolve())
     print(f"[INFO] Logging experiment in directory: {log_root_path}")
     # specify directory for logging runs: {time-stamp}_{run_name}
     log_dir = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")

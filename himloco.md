@@ -131,6 +131,7 @@
 而 `AT_rl_sar` 的观测是由 observation manager 按 term 组织的，所以不能再硬编码维度和切片。现在的处理方式是：
 
 - 从 `policy` group 自动推导 one-step obs 维度
+- 将 Isaac Lab 的 term-major 历史布局重排为 HIM 使用的 current-frame-first 布局
 - 从 `critic` group 自动推导 estimator velocity slice
 - 从 policy / critic 的共享 term 自动推导 estimator target slice
 
@@ -152,19 +153,18 @@
 - `next_critic_obs[:, 45:48]` 是 `base_lin_vel`
 - `next_critic_obs[:, 3:48]` 是 `target input`
 
-这在 `AT_rl_sar` 里并不可靠，因为 observation term 排布由环境配置决定。这里做了两层处理：
+这在 `AT_rl_sar` 里并不可靠，因为 observation term 排布由环境配置决定。现在统一以 observation manager 的实际布局为准：
 
-- 配置层支持显式传入：
-  - `num_one_step_obs`
-  - `estimator_vel_slice`
-  - `estimator_target_slice`
-- runtime 层如果配置无效，会回退到环境自动推导值
+- `num_one_step_obs` 从 policy observation terms 自动推导
+- `estimator_vel_slice` 从 critic 的 `base_lin_vel` term 自动推导
+- `estimator_target_slice` 从 policy / critic 共享且连续的 terms 自动推导
+- 即使旧配置中的切片维度合法，只要和环境布局不一致，也优先使用环境推导结果
 
 对应逻辑在：
 
 - `source/robot_lab/robot_lab/him/him_on_policy_runner.py`
 
-这样既兼容老配置，也避免 estimator 因切片错位直接学坏。
+这样可以避免配置中的 `(45, 48)` 在当前 critic 布局中误指向 action，而不是 `base_lin_vel`。
 
 ### 4.5 对 done 样本做 mask
 
@@ -410,9 +410,10 @@ Please check that the gym registry has the entry point: 'rsl_rl_him_cfg_entry_po
 
 优先调的超参一般是：
 
-- `num_one_step_obs`
+- `history_length`
 - `entropy_coef`
 - `learning_rate`
+- `estimator_learning_rate`
 - `actor_hidden_dims`
 - `critic_hidden_dims`
 
@@ -434,11 +435,12 @@ Please check that the gym registry has the entry point: 'rsl_rl_him_cfg_entry_po
 
 ## 10. 当前结果
 
-截至 2026-07-24，这次移植已经完成以下能力：
+截至 2026-07-25，这次移植已经完成以下能力：
 
 - 本仓本地 HIM 算法栈已接入
 - `train.py` / `play.py` / `play_cs.py` 已支持 HIM runner
 - `Isaac Lab + Gymnasium` 接口已适配
+- Isaac Lab term-major history 已转换为 HIM current-frame-first history
 - estimator 切片不再强依赖原始 `HIMLoco` 固定索引
 - ATDog 和 Unitree A1 已补 HIM 配置与注册
 - 导出链路已改为按真实维度导出

@@ -101,11 +101,42 @@ class HIMVecEnvWrapper:
         actor_obs = self._extract_group_observations(observations, "policy")
         if actor_obs is None:
             raise KeyError("HIM requires a 'policy' observation group.")
+        actor_obs = self._reorder_policy_history(actor_obs)
 
         critic_obs = self._extract_group_observations(observations, "critic")
         if critic_obs is None:
             critic_obs = self._compute_group("critic")
         return actor_obs, critic_obs
+
+    def _reorder_policy_history(self, actor_obs: torch.Tensor) -> torch.Tensor:
+        if not self.policy_term_slices or not self.policy_one_step_term_slices:
+            return actor_obs
+
+        term_histories = []
+        history_lengths = set()
+        for term_name, term_slice in self.policy_term_slices.items():
+            one_step_slice = self.policy_one_step_term_slices[term_name]
+            base_dim = one_step_slice.stop - one_step_slice.start
+            total_dim = term_slice.stop - term_slice.start
+            if base_dim <= 0 or total_dim % base_dim != 0:
+                raise ValueError(
+                    f"Invalid HIM policy history layout for term '{term_name}': "
+                    f"total_dim={total_dim}, base_dim={base_dim}."
+                )
+            history_length = total_dim // base_dim
+            history_lengths.add(history_length)
+            term_histories.append(actor_obs[:, term_slice].reshape(actor_obs.shape[0], history_length, base_dim))
+
+        if len(history_lengths) != 1:
+            raise ValueError(f"HIM requires a uniform policy history length, got {sorted(history_lengths)}.")
+        history_length = history_lengths.pop()
+        if history_length <= 1:
+            return actor_obs
+
+        frames = []
+        for history_index in range(history_length - 1, -1, -1):
+            frames.append(torch.cat([term_history[:, history_index] for term_history in term_histories], dim=-1))
+        return torch.cat(frames, dim=-1)
 
     def _extract_group_observations(self, observations, group_name: str) -> torch.Tensor | None:
         if observations is None:
