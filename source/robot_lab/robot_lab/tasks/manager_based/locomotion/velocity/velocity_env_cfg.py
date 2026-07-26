@@ -10,6 +10,7 @@ import inspect
 import math
 import sys
 from dataclasses import MISSING
+from pathlib import Path
 
 import isaaclab.sim as sim_utils
 from isaaclab.assets import ArticulationCfg, AssetBaseCfg
@@ -24,8 +25,8 @@ from isaaclab.managers import TerminationTermCfg as DoneTerm
 from isaaclab.scene import InteractiveSceneCfg
 from isaaclab.sensors import ContactSensorCfg, RayCasterCfg, patterns
 from isaaclab.terrains import TerrainImporterCfg
+from isaaclab.terrains.terrain_importer import TerrainImporter
 from isaaclab.utils import configclass
-from isaaclab.utils.assets import ISAAC_NUCLEUS_DIR, ISAACLAB_NUCLEUS_DIR
 from isaaclab.utils.noise import AdditiveUniformNoiseCfg as Unoise
 
 import robot_lab.tasks.manager_based.locomotion.velocity.mdp as mdp
@@ -34,6 +35,33 @@ import robot_lab.tasks.manager_based.locomotion.velocity.mdp as mdp
 # Pre-defined configs
 ##
 from isaaclab.terrains.config.rough import ROUGH_TERRAINS_CFG  # isort: skip
+
+LOCAL_GROUND_PLANE_USD = Path(__file__).resolve().parents[7] / "default_environment.usd"
+
+
+class LocalGroundPlaneTerrainImporter(TerrainImporter):
+    """Terrain importer that uses the repository-local ground plane USD for plane terrains."""
+
+    def import_ground_plane(self, name: str, size: tuple[float, float] = (2.0e6, 2.0e6)):
+        prim_path = self.cfg.prim_path + f"/{name}"
+        if prim_path in self.terrain_prim_paths:
+            raise ValueError(
+                f"A terrain with the name '{name}' already exists. Existing terrains: {', '.join(self.terrain_names)}."
+            )
+        self.terrain_prim_paths.append(prim_path)
+
+        color = (0.0, 0.0, 0.0)
+        if self.cfg.visual_material is not None:
+            material = self.cfg.visual_material.to_dict()
+            color = material.get("diffuse_color", color)
+
+        ground_plane_cfg = sim_utils.GroundPlaneCfg(
+            usd_path=str(LOCAL_GROUND_PLANE_USD),
+            physics_material=self.cfg.physics_material,
+            size=size,
+            color=color,
+        )
+        ground_plane_cfg.func(prim_path, ground_plane_cfg)
 
 
 ##
@@ -47,6 +75,7 @@ class MySceneCfg(InteractiveSceneCfg):
 
     # ground terrain
     terrain = TerrainImporterCfg(
+        class_type=LocalGroundPlaneTerrainImporter,
         prim_path="/World/ground",
         terrain_type="generator",
         terrain_generator=ROUGH_TERRAINS_CFG,
@@ -59,11 +88,7 @@ class MySceneCfg(InteractiveSceneCfg):
             dynamic_friction=1.0,
             restitution=1.0,
         ),
-        visual_material=sim_utils.MdlFileCfg(
-            mdl_path=f"{ISAACLAB_NUCLEUS_DIR}/Materials/TilesMarbleSpiderWhiteBrickBondHoned/TilesMarbleSpiderWhiteBrickBondHoned.mdl",
-            project_uvw=True,
-            texture_scale=(0.25, 0.25),
-        ),
+        visual_material=sim_utils.PreviewSurfaceCfg(diffuse_color=(0.2, 0.2, 0.2)),
         debug_vis=False,
     )
     # robots
@@ -89,10 +114,7 @@ class MySceneCfg(InteractiveSceneCfg):
     # lights
     sky_light = AssetBaseCfg(
         prim_path="/World/skyLight",
-        spawn=sim_utils.DomeLightCfg(
-            intensity=750.0,
-            texture_file=f"{ISAAC_NUCLEUS_DIR}/Materials/Textures/Skies/PolyHaven/kloofendal_43d_clear_puresky_4k.hdr",
-        ),
+        spawn=sim_utils.DomeLightCfg(intensity=750.0),
     )
 
 
@@ -506,8 +528,7 @@ class RewardsCfg:
         params={"asset_cfg": SceneEntityCfg("robot", joint_names=".*")},
     )
     action_rate_l2 = RewTerm(func=mdp.action_rate_l2, weight=0.0)
-    # smoothness_1 = RewTerm(func=mdp.smoothness_1, weight=0.0)  # Same as action_rate_l2
-    # smoothness_2 = RewTerm(func=mdp.smoothness_2, weight=0.0)  # Unvaliable now
+    action_smoothness_2_l2 = RewTerm(func=mdp.action_smoothness_2_l2, weight=0.0)
 
     # Contact sensor
     undesired_contacts = RewTerm(
@@ -567,6 +588,17 @@ class RewardsCfg:
             "synced_feet_pair_names": (("", ""), ("", "")),
             "asset_cfg": SceneEntityCfg("robot"),
             "sensor_cfg": SceneEntityCfg("contact_forces"),
+        },
+    )
+
+    diagonal_trot_contact_pattern = RewTerm(
+        func=mdp.diagonal_trot_contact_pattern,
+        weight=0.0,
+        params={
+            "command_name": "base_velocity",
+            "sensor_cfg": SceneEntityCfg("contact_forces"),
+            "foot_names": ("", "", "", ""),
+            "command_threshold": 0.1,
         },
     )
 

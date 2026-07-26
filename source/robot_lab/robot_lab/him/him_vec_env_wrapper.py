@@ -21,6 +21,8 @@ class HIMVecEnvWrapper:
 
         self.policy_term_slices, self.policy_one_step_term_slices = self._build_group_layout("policy")
         self.critic_term_slices, _ = self._build_group_layout("critic")
+        self.policy_term_names = tuple(self.policy_one_step_term_slices.keys())
+        self.critic_term_names = tuple(self.critic_term_slices.keys())
 
         inferred_one_step_obs = self._infer_num_one_step_obs()
         requested_one_step_obs = None if num_one_step_obs is None else int(num_one_step_obs)
@@ -39,6 +41,9 @@ class HIMVecEnvWrapper:
         self.num_one_step_obs = (
             inferred_one_step_obs if inferred_one_step_obs is not None else requested_one_step_obs
         )
+        if self.num_one_step_obs is None:
+            raise ValueError("HIM one-step actor observation dimension is not available.")
+        self.num_one_step_obs = int(self.num_one_step_obs)
 
         self.default_estimator_vel_slice, self.default_estimator_target_slice = self._infer_estimator_slices()
 
@@ -52,6 +57,7 @@ class HIMVecEnvWrapper:
                 "Policy observation history is incompatible with HIM. "
                 f"actor_obs_dim={self.num_obs}, one_step_dim={self.num_one_step_obs}."
             )
+        self.history_length = self.num_obs // self.num_one_step_obs
 
     @property
     def unwrapped(self):
@@ -92,6 +98,31 @@ class HIMVecEnvWrapper:
         if critic_obs is None:
             return self.get_observations()
         return critic_obs
+
+    def get_him_deployment_metadata(self) -> dict[str, object]:
+        one_step_obs_dim = self.num_one_step_obs
+        history_length = self.history_length
+        return {
+            "actor_obs_dim": int(self.num_obs),
+            "critic_obs_dim": None if self.num_privileged_obs is None else int(self.num_privileged_obs),
+            "one_step_obs_dim": one_step_obs_dim,
+            "history_length": history_length,
+            "history_indices_latest_to_oldest": list(range(history_length)),
+            "history_layout": "time_major_current_to_oldest",
+            "policy_term_names": list(self.policy_term_names),
+            "policy_terms": [
+                {
+                    "name": term_name,
+                    "dim": int(term_slice.stop - term_slice.start),
+                    "start": int(term_slice.start),
+                    "stop": int(term_slice.stop),
+                }
+                for term_name, term_slice in self.policy_one_step_term_slices.items()
+            ],
+            "critic_term_names": list(self.critic_term_names),
+            "default_estimator_vel_slice": self.default_estimator_vel_slice,
+            "default_estimator_target_slice": self.default_estimator_target_slice,
+        }
 
     def _cache_observations(self, actor_obs: torch.Tensor, critic_obs: torch.Tensor | None):
         self._latest_actor_obs = actor_obs

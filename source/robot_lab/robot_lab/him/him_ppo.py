@@ -144,6 +144,7 @@ class HIMPPO:
                 obs_batch,
                 next_critic_obs_batch,
                 dones=dones_batch,
+                lr=self.learning_rate,
             )
 
             ratio = torch.exp(actions_log_prob_batch - torch.squeeze(old_actions_log_prob_batch))

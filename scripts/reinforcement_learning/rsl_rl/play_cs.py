@@ -93,6 +93,7 @@ from isaaclab_tasks.utils.hydra import hydra_task_config
 from robot_lab.him import (
     HIMOnPolicyRunner,
     HIMVecEnvWrapper,
+    export_him_deployment_metadata,
     export_him_policy_as_jit,
     export_him_policy_as_onnx,
 )
@@ -289,10 +290,15 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
     if agent_cfg.class_name == "HIMOnPolicyRunner":
         export_him_policy_as_jit(policy_nn, path=export_model_dir, filename="policy.pt", normalizer=normalizer)
         export_him_policy_as_onnx(policy_nn, path=export_model_dir, filename="policy.onnx", normalizer=normalizer)
+        exported_paths = export_him_deployment_metadata(policy_nn, env, path=export_model_dir)
     else:
         export_policy_as_jit(policy_nn, normalizer=normalizer, path=export_model_dir, filename="policy.pt")
         export_policy_as_onnx(policy_nn, normalizer=normalizer, path=export_model_dir, filename="policy.onnx")
     print(f"[INFO] Exported policy artifacts to: {export_model_dir}")
+    if agent_cfg.class_name == "HIMOnPolicyRunner":
+        print(f"[INFO] Exported HIM deployment metadata to: {exported_paths['metadata_path']}")
+        if exported_paths["at_robot_lab_path"] is not None:
+            print(f"[INFO] Exported AT_robot-lab history config snippet to: {exported_paths['at_robot_lab_path']}")
 
     if args_cli.export_only:
         env.close()

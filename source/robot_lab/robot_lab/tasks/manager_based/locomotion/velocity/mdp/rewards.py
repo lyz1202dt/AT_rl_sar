@@ -452,6 +452,39 @@ def feet_contact_without_cmd(env: ManagerBasedRLEnv, command_name: str, sensor_c
     return reward
 
 
+def diagonal_trot_contact_pattern(
+    env: ManagerBasedRLEnv,
+    command_name: str,
+    sensor_cfg: SceneEntityCfg,
+    foot_names: tuple[str, str, str, str],
+    command_threshold: float = 0.1,
+) -> torch.Tensor:
+    """Penalize non-trot contact patterns while the robot is commanded to move.
+
+    The foot order is FL, FR, RL, RR. A low penalty means FL/RR and FR/RL are synchronized, while the two
+    diagonal pairs are in opposite contact states. This biases the policy away from pacing, bounding, and
+    four-foot hopping without affecting stand-still behavior.
+    """
+    contact_sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]
+    cache_name = "_diagonal_trot_contact_body_ids"
+    cached_foot_names, body_ids = getattr(env, cache_name, (None, None))
+    if cached_foot_names != foot_names:
+        body_ids = contact_sensor.find_bodies(list(foot_names))[0]
+        if len(body_ids) != 4:
+            raise ValueError(f"Expected four foot bodies for diagonal trot reward, got {len(body_ids)}: {foot_names}")
+        setattr(env, cache_name, (foot_names, body_ids))
+
+    contact = (contact_sensor.data.current_contact_time[:, body_ids] > 0.0).float()
+    fl, fr, rl, rr = contact[:, 0], contact[:, 1], contact[:, 2], contact[:, 3]
+
+    diagonal_mismatch = torch.abs(fl - rr) + torch.abs(fr - rl)
+    diagonal_pair_same_phase = 1.0 - torch.abs(fl - fr)
+    reward = diagonal_mismatch + diagonal_pair_same_phase
+    reward *= torch.linalg.norm(env.command_manager.get_command(command_name), dim=1) > command_threshold
+    reward *= torch.clamp(-env.scene["robot"].data.projected_gravity_b[:, 2], 0, 0.7) / 0.7
+    return reward
+
+
 def feet_stumble(env: ManagerBasedRLEnv, sensor_cfg: SceneEntityCfg) -> torch.Tensor:
     # extract the used quantities (to enable type-hinting)
     contact_sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]
@@ -614,19 +647,20 @@ def feet_slide(
     return reward
 
 
-# def smoothness_1(env: ManagerBasedRLEnv) -> torch.Tensor:
-#     # Penalize changes in actions
-#     diff = torch.square(env.action_manager.action - env.action_manager.prev_action)
-#     diff = diff * (env.action_manager.prev_action[:, :] != 0)  # ignore first step
-#     return torch.sum(diff, dim=1)
+def action_smoothness_2_l2(env: ManagerBasedRLEnv) -> torch.Tensor:
+    """Penalize second-order action differences to suppress high-frequency oscillation."""
+    action = env.action_manager.action
+    prev_action = env.action_manager.prev_action
+    prev_prev_action = getattr(env, "_action_smoothness_2_prev_action", None)
+    if prev_prev_action is None or prev_prev_action.shape != prev_action.shape:
+        prev_prev_action = torch.zeros_like(prev_action)
 
+    diff = torch.square(action - 2.0 * prev_action + prev_prev_action)
+    valid = torch.logical_and(prev_action != 0.0, prev_prev_action != 0.0)
+    reward = torch.sum(diff * valid, dim=1)
 
-# def smoothness_2(env: ManagerBasedRLEnv) -> torch.Tensor:
-#     # Penalize changes in actions
-#     diff = torch.square(env.action_manager.action - 2 * env.action_manager.prev_action + env.action_manager.prev_prev_action)
-#     diff = diff * (env.action_manager.prev_action[:, :] != 0)  # ignore first step
-#     diff = diff * (env.action_manager.prev_prev_action[:, :] != 0)  # ignore second step
-#     return torch.sum(diff, dim=1)
+    env._action_smoothness_2_prev_action = prev_action.detach().clone()
+    return reward
 
 
 def upward(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")) -> torch.Tensor:

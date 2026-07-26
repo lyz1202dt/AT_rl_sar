@@ -489,3 +489,118 @@ python scripts/reinforcement_learning/rsl_rl/play.py \
 - 日志、导出、Hydra 注册这些工程链路全部补齐
 
 只要后续继续遵守这三个约束，新增四足任务的 HIM 接入成本会比较低；真正复杂的部分会更多集中在任务观测契约，而不是算法本身。
+
+
+## 13. 2026-07-26 移植与六帧历史评估
+
+### 13.1 提交评估
+
+- `7d5e5be52aa67a6076a1e516102ff449ec396dd4` 完成了 HIM 算法栈移植，覆盖 actor-critic、estimator、PPO、storage、runner、vec wrapper、导出和任务注册。整体移植方向正确，并且比原始 `HIMLoco` 更适合本仓的一点是 estimator 的 `base_lin_vel` / target slice 会优先从 Robot Lab observation layout 自动推断，而不是继续依赖原始工程的固定 `(45, 48)` / `(3, 48)` 索引。
+- `d32ca17d59b8906260176b48065e796086ca7ac5` 把 HIM policy 观测切到 6 帧历史，训练、play、play_cs 都会在 HIM runner 下自动设置 `policy.history_length = 6` 和 `flatten_history_dim = True`。这解决了原始移植后 actor 实际仍可能只吃单帧输入的问题。
+- 当前工作区新增部署元数据导出后，HIM 模型导出会额外生成 `policy_metadata.json` 和 AT_robot-lab 历史配置片段，便于实机侧检查 one-step 维度、history 长度、term 顺序和不支持 term。
+
+### 13.2 六帧历史效果
+
+六帧历史对 HIM 是必要项，不只是提高性能的超参。HIM actor 实际输入为：
+
+```text
+[current_one_step_obs, estimated_base_lin_vel, latent]
+```
+
+其中 `estimated_base_lin_vel` 和 `latent` 都来自 estimator 对完整历史观测的编码。没有稳定的历史输入时，estimator 只能从单帧本体状态猜速度和隐变量，退化明显。
+
+当前实现的历史顺序是：
+
+```text
+[t0_all_terms, t-1_all_terms, t-2_all_terms, ..., t-5_all_terms]
+```
+
+即 time-major、latest-to-oldest。Isaac Lab 内部历史 buffer 输出 oldest-to-current，`HIMVecEnvWrapper` 会倒序重排后再给 HIM。这个顺序与 AT_robot-lab 的 `ObservationBuffer` 在 `observations_history_priority: "time"`、`observations_history: [0, 1, 2, 3, 4, 5]` 下完全一致。
+
+### 13.3 AT_robot-lab sim2real 适配性
+
+AT_robot-lab 侧已经支持历史观测：
+
+- `observations_history` 中 `0` 表示最新帧，`5` 表示最旧帧。
+- `observations_history_priority: "time"` 会按整帧拼接，符合 HIM 导出的 JIT/ONNX 输入。
+- `InitRL()` 会用当前观测预填满 history buffer，避免实机启动前几帧喂零历史。
+
+需要注意的部署约束：
+
+- `observations` 顺序必须和训练 policy term 顺序一致。ATDog2 当前训练侧顺序是 `ang_vel, gravity_vec, commands, dof_pos, dof_vel, actions`。
+- `num_observations` 必须是一帧维度，HIM ATDog2 为 45；模型实际输入是 `45 * 6 = 270`。
+- stairs / sand / bar / slope 等 AT_robot-lab 配置目前仍多为 `observations_history: []`，如果部署 HIM checkpoint，必须改为 `[0, 1, 2, 3, 4, 5]`。
+
+### 13.4 已做优化
+
+- estimator 更新现在跟随 PPO adaptive KL 调度后的 `learning_rate`，与原始 HIMLoco 的训练节奏一致，避免 PPO 学习率已经降/升而 estimator 仍固定在初始 lr。
+- AT_robot-lab 配置片段导出文件改为 `at_robot_lab_history.yaml`，不再默认覆盖导出目录下可能已有的正式 `config.yaml`。
+- 导出的 AT_robot-lab 片段增加 `policy_input_dim` 注释，便于部署时确认 JIT/ONNX 输入维度是否等于 `num_observations * len(observations_history)`。
+
+### 13.5 后续优化优先级
+
+1. 先用 `--export-only` 对每个 HIM checkpoint 生成 `policy_metadata.json`，确认 `policy_terms` 与 AT_robot-lab YAML 的 `observations` 一致。
+2. 把 AT_robot-lab 的 stairs / sand / bar / slope / bridge HIM 策略配置统一开启六帧历史。
+3. 训练侧保持 policy 不含 `base_lin_vel`，critic 保留 `base_lin_vel`，否则 estimator 目标会失去 sim2real 意义。
+4. 若继续强化粗糙地形能力，优先微调奖励和 domain randomization，不建议把 height scan 加回 policy；加回会提高仿真成绩，但会破坏当前无高度传感器的实机输入契约。
+
+
+## 14. 2026-07-26 Dog2 抖动问题调参记录
+
+现象：
+
+- 无速度命令时，机身前后上下抖动。
+- 有速度命令时，步态推进效果差，前后俯仰/上下振荡明显。
+
+主要判断：
+
+- 零速命令样本比例原来只有 `rel_standing_envs=0.02`，策略很少真正学习“停住”。
+- `feet_air_time=50`、`feet_gait=15`、`track_ang_vel_z=40` 偏激进，容易鼓励持续抬腿和强行转向，零速附近也会把策略推向动态步态。
+- `upward` 项返回的是姿态偏差平方，正权重会奖励偏差，不适合作为稳身项。
+- `flat_orientation_l2`、`ang_vel_xy_l2`、`lin_vel_z_l2` 和 `body_lin_acc_l2` 对前后俯仰/上下振荡约束不足。
+- reset 初始 roll/pitch/速度扰动过大，不适合作为当前阶段的稳定步态起点。
+
+已调整的训练起点：
+
+- 零速样本比例提高到 `0.2`。
+- 命令范围收窄到 `x=(-0.8, 0.8)`、`y=(-0.25, 0.25)`、`yaw=(-0.6, 0.6)`。
+- 降低速度追踪、腾空时间和步态同步奖励，避免为了追踪命令牺牲机身稳定。
+- 增强 `stand_still`、`joint_pos_penalty`、`action_rate_l2`、`joint_acc_l2`、`joint_power`。
+- 开启 `flat_orientation_l2=-2.0`，加大 `lin_vel_z_l2=-8.0`、`ang_vel_xy_l2=-1.0`，新增 `body_lin_acc_l2=-1e-4`。
+- 关闭 `upward`。
+- reset 初始姿态/速度扰动收窄，先让策略学会稳定站立和低速步态。
+- 补充 `action_smoothness_2_l2` 二阶动作差分惩罚，抑制相邻动作变化方向来回翻转造成的高频抖动。
+
+建议训练流程：
+
+1. 先训练这个保守版本，观察零速站立是否不再周期性点头/弹跳。
+2. 如果零速稳定但走得慢，再逐步提高 `track_lin_vel_xy_exp` 到 `30-40`，不要直接回到 `50+`。
+3. 如果脚拖地，再把 `feet_air_time` 从 `8` 提到 `12-18`，或把 threshold 从 `0.25` 提到 `0.3`，不要回到 `0.5/50`。
+4. 如果台阶能力不足，优先做地形课程或命令课程，而不是把姿态稳定惩罚降掉。
+
+### 14.1 有速度命令时上下抖和非对角步态
+
+新现象：
+
+- 无速度命令时已经基本不抖，说明站立项和零速样本比例有效。
+- 有速度命令时仍有机身上下弹跳，且步态没有稳定形成对角 trot。
+
+本轮判断：
+
+- `track_lin_vel_xy_exp=70`、`track_ang_vel_z_exp=50` 对当前阶段偏强，策略容易用弹跳/冲击换速度追踪。
+- 仅靠 `feet_gait` 的接触/腾空时间同步约束不够直接，不能强力排除 pacing、bounding 或四脚同相跳。
+- 需要把“有命令时的动态稳定”和“当前接触模式必须接近对角步态”分开约束，避免破坏已经稳定的零速站立。
+
+已调整：
+
+- 新增 `diagonal_trot_contact_pattern`，只在命令范数超过阈值时启用，惩罚非 `FL+RR` / `FR+RL` 对角接触模式。
+- `feet_gait` 提高到 `12.0`，继续约束对角腿相位同步。
+- `track_lin_vel_xy_exp` 降到 `50.0`，`track_ang_vel_z_exp` 降到 `25.0`，减少为追踪命令牺牲机身稳定的倾向。
+- `lin_vel_z_l2=-10.0`、`ang_vel_xy_l2=-6.0`、`body_lin_acc_l2=-2e-4`，增强行走时机身上下/俯仰抑振。
+- `feet_air_time=5.0`、`feet_air_time_variance=-6.0`，降低鼓励大幅抬腿的强度，同时保持四腿节律一致。
+
+下一轮观察重点：
+
+1. 如果速度明显变慢但步态变成对角步，先保持该配置继续训练，再逐步把 `track_lin_vel_xy_exp` 提到 `55-60`。
+2. 如果仍四脚跳或 pacing，把 `diagonal_trot_contact_pattern.weight` 从 `-1.0` 加到 `-1.5`，不要优先提高 `feet_air_time`。
+3. 如果对角步态出现但脚拖地，再小幅提高 `feet_air_time` 到 `6-8`，或把 threshold 从 `0.25` 提到 `0.28`。

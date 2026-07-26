@@ -3,7 +3,7 @@
 
 """Local HIM integration for Robot Lab."""
 
-from .exporter import export_him_policy_as_jit, export_him_policy_as_onnx
+from .exporter import export_him_deployment_metadata, export_him_policy_as_jit, export_him_policy_as_onnx
 from .him_actor_critic import HIMActorCritic
 from .him_on_policy_runner import HIMOnPolicyRunner
 from .him_vec_env_wrapper import HIMVecEnvWrapper
@@ -12,6 +12,7 @@ __all__ = [
     "HIMActorCritic",
     "HIMOnPolicyRunner",
     "HIMVecEnvWrapper",
+    "export_him_deployment_metadata",
     "export_him_policy_as_jit",
     "export_him_policy_as_onnx",
 ]
