@@ -92,7 +92,7 @@ cd /workspace/isaaclab_extension_template
 
 
 /workspace/isaaclab/isaaclab.sh -p /workspace/isaaclab_extension_template/scripts/reinforcement_learning/rsl_rl/train.py \
-  --task=RobotLab-Isaac-Velocity-Rough-ATDog-Dog2-Arm-v0 \
+  --task=RobotLab-Isaac-Velocity-Rough-ATDog-Dog2-v0 \
   --num_envs=6000 \
   --max_iterations=2000\
   --headless \

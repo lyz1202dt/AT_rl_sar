@@ -34,11 +34,11 @@ AT_DOG2_CFG = ArticulationCfg(
         ),
     ),
     init_state=ArticulationCfg.InitialStateCfg(
-        pos=(0.0, 0.0, 0.25),
+        # Match the 03dog default pose; keep the feet above ground at spawn.
+        pos=(0.0, 0.0, 0.40),
         joint_pos={
             ".*_hip_joint": 0.0,
-            ".*L_thigh_joint": 0.8,
-            ".*R_thigh_joint": -0.8,
+            ".*_thigh_joint": -0.7854,
             ".*_calf_joint": 0.0,
         },
         joint_vel={".*": 0.0},
@@ -350,11 +350,11 @@ AT_DOG4_CFG = ArticulationCfg(
         ),
     ),
     init_state=ArticulationCfg.InitialStateCfg(
-        pos=(0.0, 0.0, 0.25),
+        # Match the 03dog default pose; keep the feet above ground at spawn.
+        pos=(0.0, 0.0, 0.40),
         joint_pos={
             ".*_hip_joint": 0.0,
-            ".*L_thigh_joint": 0.8,
-            ".*R_thigh_joint": -0.8,
+            ".*_thigh_joint": -0.7854,
             ".*_calf_joint": 0.0,
         },
         joint_vel={".*": 0.0},
