@@ -263,11 +263,9 @@ def joint_mirror(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg, mirror_joint
     reward = torch.zeros(env.num_envs, device=env.device)
     # Iterate over all joint pairs
     for joint_pair in env.joint_mirror_joints_cache:
-        # Compare magnitudes so mirrored joints are encouraged to move with similar amplitude
         diff = torch.sum(
             torch.square(
-                torch.abs(asset.data.joint_pos[:, joint_pair[0][0]])
-                - torch.abs(asset.data.joint_pos[:, joint_pair[1][0]])
+                asset.data.joint_pos[:, joint_pair[0][0]] - asset.data.joint_pos[:, joint_pair[1][0]]
             ),
             dim=-1,
         )
@@ -291,8 +289,7 @@ def action_mirror(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg, mirror_join
         # Calculate the difference for each pair and add to the total reward
         diff = torch.sum(
             torch.square(
-                torch.abs(env.action_manager.action[:, joint_pair[0][0]])
-                - torch.abs(env.action_manager.action[:, joint_pair[1][0]])
+                env.action_manager.action[:, joint_pair[0][0]] - env.action_manager.action[:, joint_pair[1][0]]
             ),
             dim=-1,
         )

@@ -253,7 +253,7 @@ class ATDogDog2StairsEnvCfg(LocomotionVelocityRoughEnvCfg):
         # 常为 locomotion 核心驱动项，值越大越优先“跟得上命令”。
         self.rewards.track_lin_vel_xy_exp.weight = 80.0
         # 偏航角速度追踪奖励（绕 z 转向），支持转向命令执行。
-        self.rewards.track_ang_vel_z_exp.weight = 40.0
+        self.rewards.track_ang_vel_z_exp.weight = 10.0
 
         # Others
         # 足端腾空时间奖励: 鼓励形成明确摆动相，避免拖脚。
