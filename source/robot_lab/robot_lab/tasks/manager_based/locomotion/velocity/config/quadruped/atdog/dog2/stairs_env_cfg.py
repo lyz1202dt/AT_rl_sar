@@ -257,7 +257,7 @@ class ATDogDog2StairsEnvCfg(LocomotionVelocityRoughEnvCfg):
 
         # Others
         # 足端腾空时间奖励: 鼓励形成明确摆动相，避免拖脚。
-        self.rewards.feet_air_time.weight = 70.0
+        self.rewards.feet_air_time.weight = 40.0
         # 只在腾空时间超过阈值时开始计入（单位 s），避免“微小离地”刷分。
         self.rewards.feet_air_time.params["threshold"] = 0.3
         self.rewards.feet_air_time.params["sensor_cfg"].body_names = [self.foot_link_name]
