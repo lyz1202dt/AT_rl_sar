@@ -47,10 +47,10 @@ AT_DOG2_CFG = ArticulationCfg(
     actuators={
         "legs": DelayedPDActuatorCfg(
             joint_names_expr=[".*"],
-            effort_limit=23.5,
+            effort_limit=30.0,
             velocity_limit=30.0,
-            stiffness=50.0,
-            damping=1.5,
+            stiffness=40.0,
+            damping=1.0,
             friction=0.5,
             min_delay=1,  # physics steps (sim.dt=0.005s): 1 * 5ms = 5ms
             max_delay=2,  # physics steps (fixed delay): 1 * 5ms = 5ms
