@@ -73,6 +73,16 @@ cd /workspace/isaaclab_extension_template
   --load_run=2026-06-12_13-55-44 \
   --checkpoint=model_39600.pt 
 
+cd /workspace/isaaclab_extension_template
+/workspace/isaaclab/isaaclab.sh -p /workspace/isaaclab_extension_template/scripts/reinforcement_learning/rsl_rl/train.py \
+  --task=RobotLab-Isaac-Velocity-Flat-ATDog-Dog2-v0 \
+  --num_envs=4000 \
+  --max_iterations=2000\
+  --headless \
+  --resume \
+  --load_run=2026-11-03_05-13-04 \
+  --checkpoint=model_400.pt 
+
 /workspace/isaaclab/isaaclab.sh -p /workspace/isaaclab_extension_template/scripts/reinforcement_learning/rsl_rl/train.py \
   --task=RobotLab-Isaac-Velocity-Slope-ATDog-Dog3-v0 \
   --num_envs=30000 \

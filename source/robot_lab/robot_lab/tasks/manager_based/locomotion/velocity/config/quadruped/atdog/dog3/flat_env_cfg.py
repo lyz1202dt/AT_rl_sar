@@ -19,17 +19,17 @@ class ATDogDog3FlatEnvCfg(ATDogDog3RoughEnvCfg):
             "x": (-0.03, 0.03),
             "y": (-0.03, 0.03),
             "z": (0.0, 0.02),
-            "roll": (-0.05, 0.05),
-            "pitch": (-0.05, 0.05),
+            "roll": (-0.5, 0.5),
+            "pitch": (-0.5, 0.5),
             "yaw": (-0.1, 0.1),
         }
         self.events.randomize_reset_base.params["velocity_range"] = {
-            "x": (0.0, 0.0),
-            "y": (0.0, 0.0),
-            "z": (0.0, 0.0),
-            "roll": (0.0, 0.0),
-            "pitch": (0.0, 0.0),
-            "yaw": (0.0, 0.0),
+            "x": (-0.2, 0.2),
+            "y": (-0.2, 0.2),
+            "z": (-0.2, 0.2),
+            "roll": (-0.5, 0.5),
+            "pitch": (-0.5, 0.5),
+            "yaw": (-0.5, 0.5),
         }
 
         # override rewards
