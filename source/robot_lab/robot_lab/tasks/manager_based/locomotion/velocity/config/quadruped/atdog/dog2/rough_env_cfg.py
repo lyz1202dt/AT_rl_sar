@@ -167,6 +167,8 @@ class ATDogDog2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.events.randomize_com_positions.params["asset_cfg"].body_names = [self.base_link_name]
         # 外力/外力矩扰动施加到 base，模拟推搡/干扰
         self.events.randomize_apply_external_force_torque.params["asset_cfg"].body_names = [self.base_link_name]
+        self.events.randomize_actuator_gains.params["stiffness_distribution_params"] = (0.9, 1.1)
+        self.events.randomize_actuator_gains.params["damping_distribution_params"] = (0.9, 1.1)
 
         # ------------------------------Rewards 奖励函数------------------------------
         # 约定:
@@ -186,12 +188,13 @@ class ATDogDog2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         # 惩罚机身 x/y 角速度（roll/pitch 旋转速度），降低侧翻和点头抖动。
         self.rewards.ang_vel_xy_l2.weight = -1.5
         # 惩罚机身姿态偏离水平（roll/pitch 倾斜角误差）。
-        self.rewards.flat_orientation_l2.weight = -3.0
-        # 机身高度跟踪惩罚: 鼓励 base 高度接近 target_height。
-        # 粗糙地形里若设太大，策略可能过于僵硬，不利于跨坎/踏石。
-        self.rewards.base_height_l2.weight = -20.0
+        self.rewards.flat_orientation_l2.weight = -6.0
+        # 指数高度惩罚在 0.1 m 误差时约为最大值的 63%，并在大误差时保持有界。
+        self.rewards.base_height_l2.func = mdp.base_height_exp_penalty
+        self.rewards.base_height_l2.weight = -30.0
+        self.rewards.base_height_l2.params["std"] = 0.1
         # 目标机身高度（单位 m）。
-        self.rewards.base_height_l2.params["target_height"] = 0.3
+        self.rewards.base_height_l2.params["target_height"] = 0.34
         # 指定用 base 刚体计算该项（避免多 body 统计带来歧义）。
         self.rewards.base_height_l2.params["asset_cfg"].body_names = [self.base_link_name]
         # 惩罚机身线加速度（平滑机身受力/运动），当前关闭。
@@ -274,9 +277,8 @@ class ATDogDog2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.feet_height.weight = -5.0
         self.rewards.feet_height.params["target_height"] = 0.2
         self.rewards.feet_height.params["asset_cfg"].body_names = [self.foot_link_name]
-        # 相对机身的足端高度惩罚（body frame），约束抬腿轨迹不过高/不过低。
-        # target_height=-0.2 表示期望脚位于机身下方一定距离处。
-        self.rewards.feet_height_body.weight = -5.0
+        # 小腿刚体位置不能代表脚底高度，暂时关闭此项以避免鼓励缩腿。
+        self.rewards.feet_height_body.weight = 0.0
         self.rewards.feet_height_body.params["target_height"] = -0.15
         self.rewards.feet_height_body.params["asset_cfg"].body_names = [self.foot_link_name]
         # 步态同步奖励: 鼓励对角腿成对同步（trot 风格）。
@@ -297,9 +299,10 @@ class ATDogDog2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
             self.disable_zero_weight_rewards()
 
         # ------------------------------Terminations 终止条件------------------------------
-        # self.terminations.illegal_contact.params["sensor_cfg"].body_names = [self.base_link_name, ".*_hip"]
-        # 关闭非法接触终止（由奖励项去“软约束”）
-        self.terminations.illegal_contact = None
+        self.terminations.illegal_contact.params["sensor_cfg"].body_names = [
+            self.base_link_name, ".*_hip", ".*_thigh"
+        ]
+        self.terminations.illegal_contact.params["threshold"] = 10.0
 
         # ------------------------------Curriculums 课程学习------------------------------
         # self.curriculum.command_levels.params["range_multiplier"] = (0.2, 1.0)
