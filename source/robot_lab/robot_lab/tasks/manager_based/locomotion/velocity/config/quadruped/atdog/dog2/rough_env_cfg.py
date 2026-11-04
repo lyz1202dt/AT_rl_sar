@@ -191,7 +191,7 @@ class ATDogDog2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.flat_orientation_l2.weight = -6.0
         # 指数高度惩罚在 0.1 m 误差时约为最大值的 63%，并在大误差时保持有界。
         self.rewards.base_height_l2.func = mdp.base_height_exp_penalty
-        self.rewards.base_height_l2.weight = -30.0
+        self.rewards.base_height_l2.weight = -10.0
         self.rewards.base_height_l2.params["std"] = 0.1
         # 目标机身高度（单位 m）。
         self.rewards.base_height_l2.params["target_height"] = 0.34
@@ -207,9 +207,9 @@ class ATDogDog2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         # 通常与 joint_power 配合，一个约束幅值，一个约束功率。
         self.rewards.joint_torques_l2.weight = -2.5e-5
         # 关节速度 L2 惩罚，抑制关节甩动，当前关闭。
-        self.rewards.joint_vel_l2.weight = 0
+        self.rewards.joint_vel_l2.weight = -1.0e-5
         # 关节加速度 L2 惩罚，鼓励动作更平滑、降低冲击。
-        self.rewards.joint_acc_l2.weight = -6.0e-6
+        self.rewards.joint_acc_l2.weight = -1.0e-5
         # self.rewards.create_joint_deviation_l1_rewterm("joint_deviation_hip_l1", -0.2, [".*_hip_joint"])
         # 关节限位惩罚: 接近/触发关节上下限时强惩罚，防止打限位。
         self.rewards.joint_pos_limits.weight = -5.0
@@ -249,9 +249,9 @@ class ATDogDog2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         # Velocity-tracking rewards
         # 线速度追踪主奖励（xy 平面，指数型）。
         # 常为 locomotion 核心驱动项，值越大越优先“跟得上命令”。
-        self.rewards.track_lin_vel_xy_exp.weight = 50.0
+        self.rewards.track_lin_vel_xy_exp.weight = 20.0
         # 偏航角速度追踪奖励（绕 z 转向），支持转向命令执行。
-        self.rewards.track_ang_vel_z_exp.weight = 20.0
+        self.rewards.track_ang_vel_z_exp.weight = 10.0
 
         # Others
         # 足端腾空时间奖励: 鼓励形成明确摆动相，避免拖脚。
@@ -265,7 +265,7 @@ class ATDogDog2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.feet_contact.weight = 0
         self.rewards.feet_contact.params["sensor_cfg"].body_names = [self.foot_link_name]
         # 无速度命令时的足接触奖励: 鼓励静止时脚不乱抬，站姿更稳。
-        self.rewards.feet_contact_without_cmd.weight = 0.1
+        self.rewards.feet_contact_without_cmd.weight = 0.5
         self.rewards.feet_contact_without_cmd.params["sensor_cfg"].body_names = [self.foot_link_name]
         # 绊脚/碰撞惩罚，当前关闭（可按地形难度逐步启用）。
         self.rewards.feet_stumble.weight = 0.0
