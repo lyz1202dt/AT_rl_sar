@@ -13,7 +13,7 @@ from robot_lab.assets import ISAACLAB_ASSETS_DATA_DIR
 AT_DOG2_CFG = ArticulationCfg(
     spawn=sim_utils.UrdfFileCfg(
         fix_base=False,
-        merge_fixed_joints=True,
+        merge_fixed_joints=False,
         replace_cylinders_with_capsules=False,
         asset_path=f"{ISAACLAB_ASSETS_DATA_DIR}/Robots/atdog/dog2/urdf/dog2.urdf",
         activate_contact_sensors=True,

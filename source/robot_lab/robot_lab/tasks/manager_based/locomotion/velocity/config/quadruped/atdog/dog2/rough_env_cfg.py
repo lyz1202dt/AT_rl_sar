@@ -60,9 +60,8 @@ class ATDogDog2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
     # 2) 质量/质心/外力随机化时筛选 body
     # 3) 与 base 相关奖励项的 body 指定
     base_link_name = "base"
-    # URDF 中的 foot link 通过固定关节连接，导入时（merge_fixed_joints=True）
-    # 会并入父级 calf body，因此接触相关奖励/惩罚需要匹配末端 calf body。
-    foot_link_name = ".*_calf"
+    # 保留 URDF 的固定关节，直接使用 foot 刚体的原点和接触数据。
+    foot_link_name = ".*_foot"
     # fmt: off
     # 关节顺序与动作/观测向量顺序保持一致，避免策略输入输出错位
     joint_names = [
@@ -280,22 +279,22 @@ class ATDogDog2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.feet_height.weight = -5.0
         self.rewards.feet_height.params["target_height"] = 0.2
         self.rewards.feet_height.params["asset_cfg"].body_names = [self.foot_link_name]
-        # 小腿刚体位置不能代表脚底高度，暂时关闭此项以避免鼓励缩腿。
-        self.rewards.feet_height_body.weight = 0.0
-        self.rewards.feet_height_body.params["target_height"] = -0.15
+        # 足端相对机身高度奖励，当前权重为零。
+        self.rewards.feet_height.weight = -5.0
+        self.rewards.feet_height.params["target_height"] = 0.10
         self.rewards.feet_height_body.params["asset_cfg"].body_names = [self.foot_link_name]
         # 步态同步奖励: 鼓励对角腿成对同步（trot 风格）。
         self.rewards.feet_gait.weight = 10.0
         self.rewards.feet_gait.params["std"] = 0.05
         self.rewards.feet_gait.params["max_err"] = 0.3
-        self.rewards.feet_gait.params["synced_feet_pair_names"] = (("FL_calf", "RR_calf"), ("FR_calf", "RL_calf"))
+        self.rewards.feet_gait.params["synced_feet_pair_names"] = (("FL_foot", "RR_foot"), ("FR_foot", "RL_foot"))
         # 机身“向上”姿态奖励（保持重力反方向对齐），提升整体直立稳定性。
         self.rewards.upward.weight = 2.0
 
-        self.rewards.feet_distance_y_exp.weight = 2.0
+        self.rewards.feet_distance_y_exp.weight = 0.8
         self.rewards.feet_distance_y_exp.params["stance_width"] = 0.34
         self.rewards.feet_distance_y_exp.params["std"] = 0.15
-        self.rewards.feet_distance_y_exp.params["asset_cfg"].body_names = ["FL_calf", "FR_calf", "RL_calf", "RR_calf"]
+        self.rewards.feet_distance_y_exp.params["asset_cfg"].body_names = ["FL_foot", "FR_foot", "RL_foot", "RR_foot"]
 
         # 将权重为0的奖励项禁用，减少无效计算与配置噪声
         if self.__class__.__name__ == "ATDogDog2RoughEnvCfg":
