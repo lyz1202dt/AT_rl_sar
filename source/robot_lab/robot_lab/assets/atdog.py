@@ -51,7 +51,9 @@ AT_DOG2_CFG = ArticulationCfg(
             velocity_limit=30.0,
             stiffness=40.0,
             damping=1.0,
-            friction=0.5,
+            friction=0.32,
+            dynamic_friction=0.29274320,
+            viscous_friction=0.02658733,
             min_delay=1,  # physics steps (sim.dt=0.005s): 1 * 5ms = 5ms
             max_delay=2,  # physics steps (fixed delay): 1 * 5ms = 5ms
         ),

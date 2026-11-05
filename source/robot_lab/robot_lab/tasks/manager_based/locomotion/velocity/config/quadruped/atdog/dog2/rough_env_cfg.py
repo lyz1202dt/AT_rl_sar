@@ -167,6 +167,8 @@ class ATDogDog2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.events.randomize_com_positions.params["asset_cfg"].body_names = [self.base_link_name]
         # 外力/外力矩扰动施加到 base，模拟推搡/干扰
         self.events.randomize_apply_external_force_torque.params["asset_cfg"].body_names = [self.base_link_name]
+        self.events.randomize_apply_external_force_torque.params["force_range"] = (-20.0, 20.0)
+        self.events.randomize_apply_external_force_torque.params["torque_range"] = (-8.0, 8.0)
         self.events.randomize_actuator_gains.params["stiffness_distribution_params"] = (0.9, 1.1)
         self.events.randomize_actuator_gains.params["damping_distribution_params"] = (0.9, 1.1)
 
@@ -199,14 +201,14 @@ class ATDogDog2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.base_height_l2.params["asset_cfg"].body_names = [self.base_link_name]
         # 惩罚机身线加速度（平滑机身受力/运动），当前关闭。
         # 该项常用于减小真实机器冲击与传感器饱和风险。
-        self.rewards.body_lin_acc_l2.weight = 0
+        self.rewards.body_lin_acc_l2.weight = 1e-3
         self.rewards.body_lin_acc_l2.params["asset_cfg"].body_names = [self.base_link_name]
 
         # Joint penalties
         # 力矩 L2 惩罚，控制能耗并抑制“暴力驱动”。
         # 通常与 joint_power 配合，一个约束幅值，一个约束功率。
         self.rewards.joint_torques_l2.weight = -2.5e-5
-        # 关节速度 L2 惩罚，抑制关节甩动，当前关闭。
+        # 关节速度 L2 惩罚，抑制关节甩动
         self.rewards.joint_vel_l2.weight = -1.0e-5
         # 关节加速度 L2 惩罚，鼓励动作更平滑、降低冲击。
         self.rewards.joint_acc_l2.weight = -1.0e-5
@@ -235,7 +237,7 @@ class ATDogDog2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
 
         # Action penalties
         # 动作变化率惩罚，抑制相邻时刻动作突变，提升控制平滑性与可部署性。
-        self.rewards.action_rate_l2.weight = -0.6
+        self.rewards.action_rate_l2.weight = -0.7
 
         # Contact sensor
         # 非足端 body 接触惩罚（如躯干/大腿触地），鼓励“只让脚接触地面”。
@@ -290,7 +292,7 @@ class ATDogDog2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.upward.weight = 2.0
 
         self.rewards.feet_distance_y_exp.weight = 2.0
-        self.rewards.feet_distance_y_exp.params["stance_width"] = 0.16
+        self.rewards.feet_distance_y_exp.params["stance_width"] = 0.34
         self.rewards.feet_distance_y_exp.params["std"] = 0.15
         self.rewards.feet_distance_y_exp.params["asset_cfg"].body_names = ["FL_calf", "FR_calf", "RL_calf", "RR_calf"]
 
