@@ -144,17 +144,17 @@ class ATDogDog2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
                 "x": (-0.5, 0.5),
                 "y": (-0.5, 0.5),
                 "z": (0.0, 0.2),
-                "roll": (-0.5, 0.5),
-                "pitch": (-0.5, 0.5),
+                "roll": (-1.0, 1.0),
+                "pitch": (-1.0, 1.0),
                 "yaw": (-0.0, 0.0),
             },
             "velocity_range": {
-                "x": (-0.2, 0.2),
-                "y": (-0.2, 0.2),
-                "z": (-0.2, 0.2),
-                "roll": (-0.5, 0.5),
-                "pitch": (-0.5, 0.5),
-                "yaw": (-0.5, 0.5),
+                "x": (-1.0, 1.0),
+                "y": (-1.0, 1.0),
+                "z": (-1.0, 0.3),
+                "roll": (-0.8, 0.8),
+                "pitch": (-0.8, 0.8),
+                "yaw": (-0.8, 0.8),
             },
         }
         # 仅随机化 base 的质量
@@ -179,9 +179,8 @@ class ATDogDog2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         # - 权重为0: 本项不参与训练（后面可统一 disable）
 
         # General
-        # 终止奖励（通常在 episode 提前结束时给固定惩罚/奖励）。
-        # 这里设为 0，表示不通过该项直接影响学习，终止影响主要体现在回合截断本身。
-        self.rewards.is_terminated.weight = 0
+        # 非超时终止（包括机身/大腿非法触地）给予显式跌倒惩罚。
+        self.rewards.is_terminated.weight = -100.0
 
         # Root penalties
         # 惩罚机身 z 方向线速度，抑制“跳跃/颠簸”。
@@ -189,7 +188,8 @@ class ATDogDog2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.lin_vel_z_l2.weight = -12.0
         # 惩罚机身 x/y 角速度（roll/pitch 旋转速度），降低侧翻和点头抖动。
         self.rewards.ang_vel_xy_l2.weight = -1.5
-        # 惩罚机身姿态偏离水平（roll/pitch 倾斜角误差）。
+        # 完整重力方向误差在侧倒和倒置时仍持续惩罚姿态偏离。
+        self.rewards.flat_orientation_l2.func = mdp.gravity_orientation_l2
         self.rewards.flat_orientation_l2.weight = -6.0
         # 指数高度惩罚在 0.1 m 误差时约为最大值的 63%，并在大误差时保持有界。
         self.rewards.base_height_l2.func = mdp.base_height_exp_penalty
@@ -199,7 +199,7 @@ class ATDogDog2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.base_height_l2.params["target_height"] = 0.34
         # 指定用 base 刚体计算该项（避免多 body 统计带来歧义）。
         self.rewards.base_height_l2.params["asset_cfg"].body_names = [self.base_link_name]
-        # 惩罚机身线加速度（平滑机身受力/运动），当前关闭。
+        # 惩罚机身线加速度（平滑机身受力/运动）
         # 该项常用于减小真实机器冲击与传感器饱和风险。
         self.rewards.body_lin_acc_l2.weight = -0.01
         self.rewards.body_lin_acc_l2.params["asset_cfg"].body_names = [self.base_link_name]
