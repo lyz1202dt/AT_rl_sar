@@ -192,10 +192,10 @@ class ATDogDog2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.flat_orientation_l2.weight = -6.0
         # 指数高度惩罚在 0.1 m 误差时约为最大值的 63%，并在大误差时保持有界。
         self.rewards.base_height_l2.func = mdp.base_height_exp_penalty
-        self.rewards.base_height_l2.weight = -10.0
+        self.rewards.base_height_l2.weight = -2.0
         self.rewards.base_height_l2.params["std"] = 0.1
         # 目标机身高度（单位 m）。
-        self.rewards.base_height_l2.params["target_height"] = 0.34
+        self.rewards.base_height_l2.params["target_height"] = 0.30
         # 指定用 base 刚体计算该项（避免多 body 统计带来歧义）。
         self.rewards.base_height_l2.params["asset_cfg"].body_names = [self.base_link_name]
         # 惩罚机身线加速度（平滑机身受力/运动）
@@ -276,15 +276,16 @@ class ATDogDog2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.feet_slide.weight = -5.0
         self.rewards.feet_slide.params["sensor_cfg"].body_names = [self.foot_link_name]
         self.rewards.feet_slide.params["asset_cfg"].body_names = [self.foot_link_name]
-        self.rewards.feet_height.weight = -5.0
-        self.rewards.feet_height.params["target_height"] = 0.2
-        self.rewards.feet_height.params["asset_cfg"].body_names = [self.foot_link_name]
-        # 足端相对机身高度奖励，当前权重为零。
+        # 摆动足端的世界高度目标。
         self.rewards.feet_height.weight = -5.0
         self.rewards.feet_height.params["target_height"] = 0.10
+        self.rewards.feet_height.params["asset_cfg"].body_names = [self.foot_link_name]
+        # 机身目标高度 0.30 m、摆动足端目标高度 0.10 m，对应机身坐标系下 -0.20 m。
+        self.rewards.feet_height_body.weight = -5.0
+        self.rewards.feet_height_body.params["target_height"] = -0.20
         self.rewards.feet_height_body.params["asset_cfg"].body_names = [self.foot_link_name]
         # 步态同步奖励: 鼓励对角腿成对同步（trot 风格）。
-        self.rewards.feet_gait.weight = 10.0
+        self.rewards.feet_gait.weight = 3.0
         self.rewards.feet_gait.params["std"] = 0.05
         self.rewards.feet_gait.params["max_err"] = 0.3
         self.rewards.feet_gait.params["synced_feet_pair_names"] = (("FL_foot", "RR_foot"), ("FR_foot", "RL_foot"))
