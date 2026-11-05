@@ -718,6 +718,16 @@ def undesired_contacts(env: ManagerBasedRLEnv, threshold: float, sensor_cfg: Sce
     return reward
 
 
+def undesired_contacts_unconditional(
+    env: ManagerBasedRLEnv, threshold: float, sensor_cfg: SceneEntityCfg
+) -> torch.Tensor:
+    """Penalize non-foot contacts even when the robot is heavily tilted."""
+    contact_sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]
+    net_contact_forces = contact_sensor.data.net_forces_w_history
+    is_contact = torch.max(torch.norm(net_contact_forces[:, :, sensor_cfg.body_ids], dim=-1), dim=1)[0] > threshold
+    return torch.sum(is_contact, dim=1).float()
+
+
 def flat_orientation_l2(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")) -> torch.Tensor:
     """Penalize non-flat base orientation using L2 squared kernel.
 

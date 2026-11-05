@@ -179,8 +179,8 @@ class ATDogDog2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         # - 权重为0: 本项不参与训练（后面可统一 disable）
 
         # General
-        # 非超时终止（包括机身/大腿非法触地）给予显式跌倒惩罚。
-        self.rewards.is_terminated.weight = -100.0
+        # 触地不再终止回合，因此无需终止奖励。
+        self.rewards.is_terminated.weight = 0.0
 
         # Root penalties
         # 惩罚机身 z 方向线速度，抑制“跳跃/颠簸”。
@@ -240,7 +240,8 @@ class ATDogDog2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.action_rate_l2.weight = -0.7
 
         # Contact sensor
-        # 非足端 body 接触惩罚（如躯干/大腿触地），鼓励“只让脚接触地面”。
+        # 非足端接触持续扣分，包括机身严重倾斜或翻倒后的触地。
+        self.rewards.undesired_contacts.func = mdp.undesired_contacts_unconditional
         self.rewards.undesired_contacts.weight = -20.0
         self.rewards.undesired_contacts.params["sensor_cfg"].body_names = [f"^(?!.*{self.foot_link_name}).*"]
         # 足端接触力惩罚，避免落脚冲击过大。
@@ -301,10 +302,7 @@ class ATDogDog2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
             self.disable_zero_weight_rewards()
 
         # ------------------------------Terminations 终止条件------------------------------
-        self.terminations.illegal_contact.params["sensor_cfg"].body_names = [
-            self.base_link_name, ".*_hip", ".*_thigh"
-        ]
-        self.terminations.illegal_contact.params["threshold"] = 10.0
+        self.terminations.illegal_contact = None
 
         # ------------------------------Curriculums 课程学习------------------------------
         # self.curriculum.command_levels.params["range_multiplier"] = (0.2, 1.0)
