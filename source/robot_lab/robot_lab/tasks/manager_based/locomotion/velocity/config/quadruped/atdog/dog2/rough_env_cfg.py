@@ -201,7 +201,7 @@ class ATDogDog2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.base_height_l2.params["asset_cfg"].body_names = [self.base_link_name]
         # 惩罚机身线加速度（平滑机身受力/运动），当前关闭。
         # 该项常用于减小真实机器冲击与传感器饱和风险。
-        self.rewards.body_lin_acc_l2.weight = 1e-3
+        self.rewards.body_lin_acc_l2.weight = -0.01
         self.rewards.body_lin_acc_l2.params["asset_cfg"].body_names = [self.base_link_name]
 
         # Joint penalties
