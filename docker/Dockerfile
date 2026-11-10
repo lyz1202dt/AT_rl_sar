@@ -1,5 +1,3 @@
-# syntax=docker/dockerfile:1.4
-
 ARG ISAACLAB_BASE_IMAGE_ARG
 ARG BUILD_HTTP_PROXY_ARG
 ARG BUILD_HTTPS_PROXY_ARG
@@ -68,7 +66,12 @@ RUN bash -i -c 'source "${HOME}/.bashrc" && \
         unset HTTP_PROXY HTTPS_PROXY ALL_PROXY NO_PROXY http_proxy https_proxy all_proxy no_proxy; \
     fi && \
     export ISAACLAB_PATH=${ISAACLAB_PATH:-/workspace/isaaclab} && \
-    ${ISAACLAB_PATH}/isaaclab.sh --install'
+    if ${ISAACLAB_PATH}/isaaclab.sh -p -m pip show isaaclab isaaclab_assets isaaclab_tasks isaaclab_rl isaaclab_mimic >/dev/null 2>&1 && \
+       ${ISAACLAB_PATH}/isaaclab.sh -p -c "import torch, torchvision" >/dev/null 2>&1; then \
+        echo "[INFO] Isaac Lab and PyTorch are already installed in the base image."; \
+    else \
+        ${ISAACLAB_PATH}/isaaclab.sh --install; \
+    fi'
 
 # Install the robot_lab extension into the same Python environment.
 RUN bash -i -c 'source "${HOME}/.bashrc" && \
@@ -95,7 +98,7 @@ RUN bash -i -c 'source "${HOME}/.bashrc" && \
         unset HTTP_PROXY HTTPS_PROXY ALL_PROXY NO_PROXY http_proxy https_proxy all_proxy no_proxy; \
     fi && \
     cd ${DOCKER_ISAACLAB_EXTENSION_TEMPLATE_PATH}/source/robot_lab && \
-    pip install -e .'
+    pip install -e . "numpy<2" "pandas<3"'
 
 # make working directory as the Isaac Lab directory
 # this is the default directory when the container is run

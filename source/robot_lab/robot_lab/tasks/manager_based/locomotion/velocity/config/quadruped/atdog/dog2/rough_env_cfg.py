@@ -277,12 +277,12 @@ class ATDogDog2RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.feet_slide.params["sensor_cfg"].body_names = [self.foot_link_name]
         self.rewards.feet_slide.params["asset_cfg"].body_names = [self.foot_link_name]
         # 摆动足端的世界高度目标。
-        self.rewards.feet_height.weight = -5.0
-        self.rewards.feet_height.params["target_height"] = 0.10
+        self.rewards.feet_height.weight = -20.0
+        self.rewards.feet_height.params["target_height"] = 0.15
         self.rewards.feet_height.params["asset_cfg"].body_names = [self.foot_link_name]
-        # 机身目标高度 0.30 m、摆动足端目标高度 0.10 m，对应机身坐标系下 -0.20 m。
+        # 机身目标高度 0.30 m、摆动足端目标高度 0.15 m，对应机身坐标系下 -0.15 m。
         self.rewards.feet_height_body.weight = -5.0
-        self.rewards.feet_height_body.params["target_height"] = -0.20
+        self.rewards.feet_height_body.params["target_height"] = -0.15
         self.rewards.feet_height_body.params["asset_cfg"].body_names = [self.foot_link_name]
         # 步态同步奖励: 鼓励对角腿成对同步（trot 风格）。
         self.rewards.feet_gait.weight = 3.0

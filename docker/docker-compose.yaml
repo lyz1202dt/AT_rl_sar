@@ -21,6 +21,8 @@ services:
       context: ../
       dockerfile: docker/Dockerfile
       network: host
+      entitlements:
+        - network.host
       # Ensure the host Clash proxy is reachable during image builds on Linux.
       extra_hosts:
         - "host.docker.internal:host-gateway"

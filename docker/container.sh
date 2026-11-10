@@ -29,7 +29,7 @@ Usage:
 
 Commands:
   build    Build the docker image only.
-  start    Build and start the container in detached mode. If X11 is available, enable GUI forwarding.
+  start    Build and start the container if not already running. If X11 is available, enable GUI forwarding.
   enter    Enter the running container with an interactive bash shell.
   stop     Stop and remove the container.
   restart  Restart the container.
@@ -156,11 +156,15 @@ require_docker() {
 }
 
 container_running() {
-    docker inspect --format '{{.State.Running}}' "${CONTAINER_NAME}" 2>/dev/null | grep -qx 'true'
+    [[ -n "$(running_container_id)" ]]
 }
 
 container_exists() {
-    docker inspect "${CONTAINER_NAME}" >/dev/null 2>&1
+    [[ -n "$(run_compose ps --all --quiet "${SERVICE_NAME}" 2>/dev/null)" ]]
+}
+
+running_container_id() {
+    run_compose ps --status running --quiet "${SERVICE_NAME}" 2>/dev/null
 }
 
 wait_for_container_running() {
@@ -219,6 +223,23 @@ EOF
 }
 
 write_gpu_override() {
+    if [[ "$(docker info --format '{{.DockerRootDir}}' 2>/dev/null || true)" == /var/snap/docker/* ]]; then
+        echo "[INFO] Docker Snap detected. Using NVIDIA runtime-hook GPU driver." >&2
+        cat > "${GPU_OVERRIDE_FILE}" <<EOF
+services:
+  ${SERVICE_NAME}:
+    runtime: nvidia
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia.runtime-hook
+              count: all
+              capabilities: [gpu]
+EOF
+        return
+    fi
+
     cat > "${GPU_OVERRIDE_FILE}" <<EOF
 services:
   ${SERVICE_NAME}:
@@ -266,6 +287,16 @@ run_compose() {
     compose_cmd "${args[@]}" "$@"
 }
 
+run_compose_build() {
+    mapfile -t args < <(compose_args)
+    if docker compose version >/dev/null 2>&1 && docker buildx version >/dev/null 2>&1; then
+        docker compose "${args[@]}" build --print "${SERVICE_NAME}" | \
+            docker buildx bake --allow=network.host -f - "${SERVICE_NAME}"
+    else
+        compose_cmd "${args[@]}" build "${SERVICE_NAME}"
+    fi
+}
+
 cmd_build() {
     require_docker
     setup_proxy_env
@@ -277,12 +308,16 @@ cmd_build() {
     else
         echo "[INFO] Build proxy: ${CLASH_PROXY_SCHEME_ARG}://${CLASH_PROXY_BUILD_HOST_ARG}:${CLASH_PROXY_PORT_ARG}"
     fi
-    run_compose build "${SERVICE_NAME}"
+    run_compose_build
 }
 
 cmd_start() {
     require_docker
-    setup_proxy_env
+    if container_running; then
+        echo "[INFO] Container for service '${SERVICE_NAME}' is already running; skipping rebuild."
+        return
+    fi
+    cmd_build
     if [[ -n "${DISPLAY:-}" && -d /tmp/.X11-unix ]]; then
         echo "[INFO] X11 detected. Enabling GUI forwarding for the container."
         enable_x11_access
@@ -296,19 +331,21 @@ cmd_start() {
     else
         echo "[INFO] Runtime proxy: ${HTTP_PROXY}"
     fi
-    run_compose up -d "${SERVICE_NAME}"
+    run_compose up -d --no-build "${SERVICE_NAME}"
     if wait_for_container_running; then
-        echo "[INFO] Container '${CONTAINER_NAME}' is ready."
+        echo "[INFO] Container for service '${SERVICE_NAME}' is ready."
     else
-        echo "[ERROR] Container '${CONTAINER_NAME}' was created but is not running yet."
-        echo "[INFO] Check its status with: docker ps -a | grep '${CONTAINER_NAME}'"
+        echo "[ERROR] Container for service '${SERVICE_NAME}' was created but is not running yet."
+        echo "[INFO] Check its status with: docker compose ps --all ${SERVICE_NAME}"
         exit 1
     fi
 }
 
 cmd_enter() {
     require_docker
-    if ! container_running; then
+    local container_id
+    container_id="$(running_container_id)"
+    if [[ -z "${container_id}" ]]; then
         if container_exists; then
             echo "[ERROR] Container '${CONTAINER_NAME}' exists but is not running. Start it with './docker/container.sh start'."
         else
@@ -329,7 +366,7 @@ cmd_enter() {
     fi
 
     if [[ "${DISABLE_CLASH_PROXY:-0}" == "1" ]]; then
-        docker exec "${exec_args[@]}" "${CONTAINER_NAME}" env \
+        docker exec "${exec_args[@]}" "${container_id}" env \
             -u HTTP_PROXY \
             -u HTTPS_PROXY \
             -u ALL_PROXY \
@@ -340,7 +377,7 @@ cmd_enter() {
             -u no_proxy \
             /bin/bash --noprofile --norc
     else
-        docker exec "${exec_args[@]}" "${CONTAINER_NAME}" /bin/bash
+        docker exec "${exec_args[@]}" "${container_id}" /bin/bash
     fi
 }
 
