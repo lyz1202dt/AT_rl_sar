@@ -29,7 +29,7 @@ Usage:
 
 Commands:
   build    Build the docker image only.
-  start    Build and start the container if not already running. If X11 is available, enable GUI forwarding.
+  start    Start the container without building. If X11 is available, enable GUI forwarding.
   enter    Enter the running container with an interactive bash shell.
   stop     Stop and remove the container.
   restart  Restart the container.
@@ -314,10 +314,10 @@ cmd_build() {
 cmd_start() {
     require_docker
     if container_running; then
-        echo "[INFO] Container for service '${SERVICE_NAME}' is already running; skipping rebuild."
+        echo "[INFO] Container for service '${SERVICE_NAME}' is already running."
         return
     fi
-    cmd_build
+    setup_proxy_env
     if [[ -n "${DISPLAY:-}" && -d /tmp/.X11-unix ]]; then
         echo "[INFO] X11 detected. Enabling GUI forwarding for the container."
         enable_x11_access
