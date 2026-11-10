@@ -98,7 +98,9 @@ RUN bash -i -c 'source "${HOME}/.bashrc" && \
         unset HTTP_PROXY HTTPS_PROXY ALL_PROXY NO_PROXY http_proxy https_proxy all_proxy no_proxy; \
     fi && \
     cd ${DOCKER_ISAACLAB_EXTENSION_TEMPLATE_PATH}/source/robot_lab && \
-    pip install -e . "numpy<2" "pandas<3"'
+    pip install -e . "numpy<2" "pandas<3" && \
+    ${ISAACLAB_PATH:-/workspace/isaaclab}/isaaclab.sh -p -m pip install --no-deps "tensordict==0.7.2" && \
+    ${ISAACLAB_PATH:-/workspace/isaaclab}/isaaclab.sh -p -c "from tensordict import TensorDict; from rsl_rl.runners import OnPolicyRunner"'
 
 # make working directory as the Isaac Lab directory
 # this is the default directory when the container is run

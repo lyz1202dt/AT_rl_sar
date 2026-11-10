@@ -65,6 +65,16 @@ cd /workspace/isaaclab_extension_template
 
 cd /workspace/isaaclab_extension_template
 /workspace/isaaclab/isaaclab.sh -p /workspace/isaaclab_extension_template/scripts/reinforcement_learning/rsl_rl/train.py \
+  --task=RobotLab-Isaac-Velocity-Rough-ATDog-Dog2-v0 \
+  --num_envs=10000 \
+  --max_iterations=2000\
+  --headless \
+  --resume \
+  --load_run=2026-06-12_13-55-44 \
+  --checkpoint=model_39600.pt 
+
+cd /workspace/isaaclab_extension_template
+/workspace/isaaclab/isaaclab.sh -p /workspace/isaaclab_extension_template/scripts/reinforcement_learning/rsl_rl/train.py \
   --task=RobotLab-Isaac-Velocity-Rough-ATDog-Dog2-Arm-v0 \
   --num_envs=10000 \
   --max_iterations=2000\
@@ -130,6 +140,12 @@ cd /workspace/isaaclab_extension_template
 /workspace/isaaclab/isaaclab.sh -p scripts/reinforcement_learning/rsl_rl/play.py \
   --task=RobotLab-Isaac-Velocity-Stairs-ATDog-Dog3-v0 \
   --checkpoint=/workspace/isaaclab_extension_template/logs/rsl_rl/atdog_dog3_stairs/2026-06-12_08-35-01/model_38986.pt \
+  --num_envs=1\
+  --headless
+
+/workspace/isaaclab/isaaclab.sh -p scripts/reinforcement_learning/rsl_rl/play.py \
+  --task=RobotLab-Isaac-Velocity-Rough-ATDog-Dog2-v0 \
+  --checkpoint=/workspace/isaaclab_extension_template/logs/rsl_rl/atdog_dog2_rough/2026-06-14_13-10-55/model_43598.pt \
   --num_envs=1\
   --headless
 
